@@ -1,7 +1,7 @@
 {
   "name": "cofreadmin",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.4",
   "license": "AGPL-3.0-or-later",
   "buildNumber": 1,
   "type": "module",
