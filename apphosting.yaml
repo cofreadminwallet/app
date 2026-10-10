@@ -1,0 +1,21 @@
+# Configuração do Firebase App Hosting para CofreAdmin
+# As credenciais e chaves foram migradas com segurança para as variáveis de ambiente
+# do painel do Firebase App Hosting, mantendo o código aberto e 100% livre de dados sensíveis.
+
+runConfig:
+  minInstances: 0
+  maxInstances: 5
+  concurrency: 80
+  cpu: 1
+  memoryMiB: 1024
+
+scripts:
+  buildCommand: npm run build
+  runCommand: npm run start
+
+env:
+  - variable: NODE_ENV
+    value: production
+    availability:
+      - BUILD
+      - RUNTIME

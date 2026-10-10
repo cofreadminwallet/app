@@ -1,0 +1,84 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 1. Bloqueio Global Padrão (Zero-Trust Default Deny)
+    // Nenhuma coleção ou caminho não especificado pode ser lido ou gravado
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions de segurança
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isOwnerOfUserData(userKey) {
+      return isSignedIn() && (
+        request.auth.uid == userKey ||
+        userKey == 'google_' + request.auth.uid ||
+        (request.auth.token.email != null && (
+          (resource != null && (
+            resource.data.email == request.auth.token.email ||
+            (resource.data.user != null && resource.data.user.email == request.auth.token.email) ||
+            resource.data.authId == request.auth.uid
+          )) ||
+          (request.resource != null && (
+            request.resource.data.email == request.auth.token.email ||
+            (request.resource.data.user != null && request.resource.data.user.email == request.auth.token.email) ||
+            request.resource.data.authId == request.auth.uid
+          ))
+        ))
+      );
+    }
+
+    // 2. Coleção de sincronização de dados operacionais do usuário (userData)
+    // Apenas o próprio usuário autenticado pode ler, gravar ou deletar seus próprios dados
+    match /userData/{userKey} {
+      allow get: if isSignedIn() && (
+        resource == null ||
+        isOwnerOfUserData(userKey)
+      );
+      allow list: if isSignedIn() && (
+        resource.data.email == request.auth.token.email ||
+        (resource.data.user != null && resource.data.user.email == request.auth.token.email) ||
+        resource.data.authId == request.auth.uid
+      );
+      allow create, update: if isValidId(userKey) && isOwnerOfUserData(userKey);
+      allow delete: if isValidId(userKey) && isOwnerOfUserData(userKey);
+    }
+
+    // 3. Arquivo permanente de auditoria legal (Blindagem Jurídica - Art. 16, I e VI da LGPD)
+    // Permite criação (create) apenas pelo usuário autenticado no momento de aceitar termos ou excluir conta
+    // Permite leitura apenas pelo titular auditado
+    // PROÍBE terminantemente alteração (update) e exclusão (delete) - REGISTRO IMUTÁVEL PROBATÓRIO
+    match /legalAuditArchive/{archiveId} {
+      allow create: if isSignedIn() && isValidId(archiveId) && (
+        request.resource.data.userEmail == request.auth.token.email ||
+        request.resource.data.userUid == request.auth.uid
+      );
+      allow get: if isSignedIn() && (
+        resource.data.userUid == request.auth.uid ||
+        (request.auth.token.email != null && resource.data.userEmail == request.auth.token.email)
+      );
+      allow list: if isSignedIn() && (
+        resource.data.userUid == request.auth.uid ||
+        (request.auth.token.email != null && resource.data.userEmail == request.auth.token.email)
+      );
+      allow update, delete: if false;
+    }
+
+    // 4. Coleção isolada de usuários autenticados por UID
+    match /users/{userId} {
+      allow read, write: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+
+      match /{document=**} {
+        allow read, write: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+      }
+    }
+  }
+}

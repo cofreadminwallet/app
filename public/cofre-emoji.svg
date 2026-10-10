@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <!-- 3D Emoji Vault Shadow -->
+    <filter id="emojiShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000000" flood-opacity="0.3" />
+    </filter>
+    <!-- Glossy Purple Gradient for Vault -->
+    <linearGradient id="emojiVaultGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#A855F7" />
+      <stop offset="40%" stop-color="#9333EA" />
+      <stop offset="100%" stop-color="#6B21A8" />
+    </linearGradient>
+    <!-- Dial metallic gradient -->
+    <linearGradient id="emojiDialGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E9D5FF" />
+      <stop offset="50%" stop-color="#C084FC" />
+      <stop offset="100%" stop-color="#7E22CE" />
+    </linearGradient>
+    <!-- Lime panel gradient -->
+    <linearGradient id="emojiLimeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#D9F99D" />
+      <stop offset="50%" stop-color="#B8F256" />
+      <stop offset="100%" stop-color="#84CC16" />
+    </linearGradient>
+  </defs>
+
+  <!-- Group with shadow -->
+  <g filter="url(#emojiShadow)">
+    <!-- Main Vault Box (Purple rounded neo-brutalist) -->
+    <rect x="14" y="20" width="76" height="88" rx="20" fill="url(#emojiVaultGrad)" stroke="#111827" stroke-width="6" />
+    
+    <!-- Top 3D glossy highlight -->
+    <rect x="22" y="26" width="60" height="6" rx="3" fill="#FFFFFF" opacity="0.4" />
+
+    <!-- Left Hinges -->
+    <rect x="10" y="36" width="7" height="14" rx="2.5" fill="#3B0764" stroke="#111827" stroke-width="4" />
+    <rect x="10" y="78" width="7" height="14" rx="2.5" fill="#3B0764" stroke="#111827" stroke-width="4" />
+
+    <!-- Recessed dial area -->
+    <circle cx="52" cy="64" r="26" fill="#3B0764" stroke="#111827" stroke-width="4" />
+
+    <!-- Dial wheel ring -->
+    <circle cx="52" cy="64" r="21" fill="url(#emojiDialGrad)" stroke="#111827" stroke-width="5" />
+
+    <!-- Dial wheel spokes -->
+    <line x1="37" y1="49" x2="67" y2="79" stroke="#111827" stroke-width="4" stroke-linecap="round" />
+    <line x1="67" y1="49" x2="37" y2="79" stroke="#111827" stroke-width="4" stroke-linecap="round" />
+
+    <!-- Dial center core -->
+    <circle cx="52" cy="64" r="9" fill="#2E1065" stroke="#111827" stroke-width="3.5" />
+    <circle cx="52" cy="64" r="4" fill="#B8F256" />
+
+    <!-- Lime Admin Equalizer Panel (Connected to right) -->
+    <rect x="90" y="32" width="24" height="64" rx="8" fill="url(#emojiLimeGrad)" stroke="#111827" stroke-width="5" />
+
+    <!-- Admin Slider Knobs -->
+    <!-- Slider 1 -->
+    <rect x="94" y="40" width="16" height="6" rx="3" fill="#111827" />
+    <circle cx="98" cy="43" r="1.5" fill="#B8F256" />
+    <!-- Slider 2 -->
+    <rect x="94" y="61" width="16" height="6" rx="3" fill="#111827" />
+    <circle cx="106" cy="64" r="1.5" fill="#B8F256" />
+    <!-- Slider 3 -->
+    <rect x="94" y="82" width="16" height="6" rx="3" fill="#111827" />
+    <circle cx="100" cy="85" r="1.5" fill="#B8F256" />
+
+    <!-- Little Sparkle at top-left -->
+    <path d="M 22 14 Q 22 20 28 20 Q 22 20 22 26 Q 22 20 16 20 Q 22 20 22 14 Z" fill="#B8F256" stroke="#111827" stroke-width="2" />
+  </g>
+</svg>

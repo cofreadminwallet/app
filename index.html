@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>CofreAdmin — Self-Custodial Web3 Personal Finance</title>
+    <!-- SEO Metatags -->
+    <meta name="description" content="Self-custodial Web3 personal finance manager and digital wallet on Base. Send and receive payments, track expenses, and save in crypto vaults." />
+    <meta name="keywords" content="personal finance, web3, self-custody wallet, cofreadmin, gfin, usdc, base network, ethereum l2, savings vaults, budget tracker">
+
+    <!-- PWA & Mobile Standalone Tags -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#B8F256" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F4F6FB" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#121214" />
+    
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="CofreAdmin" />
+    <meta name="application-name" content="CofreAdmin" />
+    
+    <!-- Favicons & Icons -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png" />
+    <link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png" />
+    <link rel="mask-icon" href="/favicon.svg" color="#B8F256" />
+    
+    <!-- Open Graph / SEO / Social Sharing -->
+    <link rel="canonical" href="https://cofreadmin.gfin.app" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="pt_BR" />
+    <meta property="og:site_name" content="CofreAdmin" />
+    <meta property="og:title" content="CofreAdmin — Self-Custodial Web3 Personal Finance" />
+    <meta property="og:description" content="Self-custodial Web3 personal finance manager and digital wallet on Base. Send and receive payments, track expenses, and save in crypto vaults." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://cofreadmin.gfin.app" />
+    <meta property="og:image" content="https://cofreadmin.gfin.app/cofreadmin-share-card.png" />
+    <meta property="og:image:secure_url" content="https://cofreadmin.gfin.app/cofreadmin-share-card.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="720" />
+    <meta property="og:image:height" content="220" />
+    <meta property="og:image:alt" content="CofreAdmin — Own your money. Be the admin." />
+    <link rel="image_src" href="https://cofreadmin.gfin.app/cofreadmin-share-card.png" />
+    <meta itemprop="image" content="https://cofreadmin.gfin.app/cofreadmin-share-card.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="CofreAdmin — Self-Custodial Web3 Personal Finance" />
+    <meta name="twitter:description" content="Self-custodial Web3 personal finance manager and digital wallet on Base. Send and receive payments, track expenses, and save in crypto vaults." />
+    <meta name="twitter:image" content="https://cofreadmin.gfin.app/cofreadmin-share-card.png" />
+    <meta name="twitter:image:src" content="https://cofreadmin.gfin.app/cofreadmin-share-card.png" />
+
+    <!-- Schema.org JSON-LD for Search Engines & Social Crawlers -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "CofreAdmin",
+      "url": "https://cofreadmin.gfin.app",
+      "description": "Self-custodial Web3 personal finance manager and digital wallet on Base. Send and receive payments, track expenses, and save in crypto vaults.",
+      "applicationCategory": "FinanceApplication",
+      "operatingSystem": "All",
+      "inLanguage": ["en-US", "pt-BR"],
+      "image": "https://cofreadmin.gfin.app/cofreadmin-share-card.png",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+    </script>
+    
+    <!-- Google Fonts Optimization with preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Preconnect & DNS-Prefetch for Critical Web3 RPC, APIs and Auth -->
+    <link rel="preconnect" href="https://mainnet.base.org" />
+    <link rel="dns-prefetch" href="https://mainnet.base.org" />
+    <link rel="dns-prefetch" href="https://base.blockscout.com" />
+    <link rel="dns-prefetch" href="https://api.coinbase.com" />
+    <link rel="dns-prefetch" href="https://involuted-cycling-n9ffs.firebaseapp.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+
+    <!-- Google tag (gtag.js) - Google Analytics 4 (GA4) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-8XNZBW7NTB"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-8XNZBW7NTB', {
+        send_page_view: true
+      });
+    </script>
+
+    <!-- Open Ad & Monetization Configuration Placeholder -->
+    <!-- Reserved space for future network script tags (e.g. AdSense/Web3 ads) -->
+    <!-- <script async src="ADS_PROVIDER_URL" crossorigin="anonymous"></script> -->
+
+
+    <!-- Early PWA Install Prompt Capture -->
+    <script>
+      window.__deferredPwaPrompt = null;
+      window.addEventListener('beforeinstallprompt', function(e) {
+        e.preventDefault();
+        window.__deferredPwaPrompt = e;
+        window.dispatchEvent(new CustomEvent('cofre_pwa_ready'));
+      });
+    </script>
+  </head>
+  <body class="bg-[#F4F6FB] text-neutral-900 font-['Plus_Jakarta_Sans',sans-serif] antialiased select-none min-h-screen">
+    <div id="root"></div>
+    <script>
+      // Fallback detector if script bundle is blocked by stale cache or MIME mismatch
+      setTimeout(function() {
+        if (!window.__APP_MOUNTED__) {
+          var root = document.getElementById('root');
+          if (root && (!root.children || root.children.length === 0)) {
+            console.warn('[CofreAdmin] App mount timeout reached. Rendering recovery UI...');
+            root.innerHTML = '<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;background:#F4F6FB;font-family:sans-serif;text-align:center;">' +
+              '<div style="width:64px;height:64px;background:#FFF;border:3px solid #000;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:16px;box-shadow:3px 3px 0 #000;">🛡️</div>' +
+              '<h2 style="font-size:18px;font-weight:900;color:#000;margin:0 0 8px 0;">Updating CofreAdmin / Atualizando...</h2>' +
+              '<p style="font-size:13px;color:#555;margin:0 0 20px 0;max-width:340px;">A fresh app version is available. Click below to refresh cache and load.<br><span style="font-size:12px;color:#777;">Uma nova versão está disponível. Clique para atualizar.</span></p>' +
+              '<button onclick="window.__hardRefreshApp()" style="background:#B8F256;border:2px solid #000;border-radius:12px;padding:12px 24px;font-size:14px;font-weight:900;color:#000;cursor:pointer;box-shadow:3px 3px 0 #000;">Refresh / Carregar Agora</button>' +
+            '</div>';
+          }
+        }
+      }, 3500);
+
+      window.__hardRefreshApp = function() {
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(function(regs) {
+            regs.forEach(function(r) { r.unregister(); });
+          });
+        }
+        if ('caches' in window) {
+          caches.keys().then(function(keys) {
+            keys.forEach(function(k) { caches.delete(k); });
+          });
+        }
+        window.location.reload(true);
+      };
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
