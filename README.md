@@ -1,11 +1,12 @@
 # CofreAdmin 🔐
 
-> **Web3 Smart Wallet & Vault Manager on the Base Network (Ethereum L2)**  
+> **Self-Custodial Web3 Personal Finance**
+> Web3 Smart Wallet & Vault Manager on the Base Network (Ethereum L2) 
 > Licensed under the **GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later)**.
 
 ---
 
-## 📬 Support & User Contact Channels
+## 📬 Support & User Contact
 
 In full compliance with the AGPL-3.0-or-later terms and our commitment to the open-source community:
 - **Official Support Email:** [cofreadminwallet@gmail.com](mailto:cofreadminwallet@gmail.com)
@@ -25,6 +26,16 @@ This repository strictly complies with modern security and open-source hygiene s
 
 ---
 
+## 🛠️ Tech Stack
+
+- **Language & Runtime:** TypeScript (`~5.8`), Node.js (`>=20`)
+- **Frontend:** React 19, Vite 6, Tailwind CSS 4, Motion
+- **Web3 & Blockchain:** Viem 2 (EVM / Base Network L2)
+- **Backend & Bundler:** Express 4, esbuild
+- **Hosting & Cloud:** 
+
+---
+
 ## 🚀 Getting Started & Self-Hosting Guide
 
 Anyone cloning or forking this repository can launch their own fully independent instance with their own backend and configuration. Follow the setup steps below:
@@ -32,8 +43,8 @@ Anyone cloning or forking this repository can launch their own fully independent
 ### 1. Clone the Repository and Install Dependencies
 
 ```bash
-git clone https://github.com/cofreadminwallet/hosting.git
-cd hosting
+git clone https://github.com/cofreadminwallet/app.git
+cd app
 npm install
 ```
 
