@@ -2,6 +2,7 @@
 
 > **Self-Custodial Web3 Personal Finance** <br>
 > USDC Vault Manager on Base Network <br>
+> Docs: **[Resources](https://github.com/cofreadminwallet/docs)** <br>
 > Licensed under the **GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later)**.
 
 ---
@@ -13,8 +14,6 @@ In full compliance with the AGPL-3.0-or-later terms and our commitment to the op
 - **Official Discord:** @cofreadmin
 - **Official Feedback:** [Submit Feedback](https://forms.gle/MBpyniv5zf795wi97)
 - **Full License Terms:** Review the [`LICENSE.md`](./LICENSE.md) file in the root directory.
-
-> docs/, see: **[Resources](https://github.com/cofreadminwallet/docs)**.
 
 ---
 
