@@ -1,7 +1,7 @@
 # GNU AFFERO GENERAL PUBLIC LICENSE
 Version 3, 19 November 2007
 
-Copyright (C) 2026 CofreAdmin Contributors
+Copyright (C) 2026 CofreAdmin
 Contact / Support: cofreadminwallet@gmail.com
 
 This program is free software: you can redistribute it and/or modify
