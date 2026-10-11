@@ -1,8 +1,7 @@
 # GNU AFFERO GENERAL PUBLIC LICENSE
 Version 3, 19 November 2007
 
-Copyright (C) 2026 CofreAdmin
-<cofreadminwallet@gmail.com>
+Copyright (C) 2026 CofreAdmin <cofreadminwallet@gmail.com>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
