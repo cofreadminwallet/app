@@ -6,13 +6,15 @@
 
 ---
 
-## 📬 Support & User Contact
+## 📬 Contact
 
 In full compliance with the AGPL-3.0-or-later terms and our commitment to the open-source community:
 - **Official Support Email:** [cofreadminwallet@gmail.com](mailto:cofreadminwallet@gmail.com)
 - **Official Discord:** @cofreadmin
 - **Official Feedback:** [Submit Feedback](https://forms.gle/MBpyniv5zf795wi97)
 - **Full License Terms:** Review the [`LICENSE.md`](./LICENSE.md) file in the root directory.
+
+> docs/, see: **[Resources](https://github.com/cofreadminwallet/docs)**.
 
 ---
 
