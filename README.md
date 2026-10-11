@@ -135,5 +135,5 @@ This program is distributed in the hope that it will be useful, but **WITHOUT AN
 Support the development of **CofreAdmin**:
 
 - **Fiat:** [GitHub Sponsors](https://github.com/sponsors/erissonweb3dev)
-- **Crypto (USDC on Base):** `0x4d2550551bdade10f9168c5930E2F787f983BBBc` **[🡽](https://basescan.org/address/0x4d2550551bdade10f9168c5930E2F787f983BBBc)**
+- **Crypto (USDC on Base):** `0x4d2550551bdade10f9168c5930E2F787f983BBBc` **[🔗](https://basescan.org/address/0x4d2550551bdade10f9168c5930E2F787f983BBBc)**
 </small>
