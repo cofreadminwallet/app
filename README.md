@@ -1,7 +1,7 @@
 # CofreAdmin 🔐
 
-> **Self-Custodial Web3 Personal Finance**
-> Web3 Smart Wallet & Vault Manager on the Base Network (Ethereum L2) 
+> **Self-Custodial Web3 Personal Finance** <br>
+> Web3 Smart Wallet & Vault Manager on the Base Network (Ethereum L2) <br>
 > Licensed under the **GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later)**.
 
 ---
