@@ -125,3 +125,12 @@ npm run start
 This program is free software: you can redistribute it and/or modify it under the terms of the **GNU Affero General Public License as published by the Free Software Foundation**, either version 3 of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but **WITHOUT ANY WARRANTY**; without even the implied warranty of **MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE**. See the [`LICENSE.md`](./LICENSE.md) file for more details.
+
+---
+
+## 💖 Support / Donate
+
+Support the development of **CofreAdmin**:
+
+- **Fiat:** [GitHub Sponsors](https://github.com/sponsors/erissonweb3dev)
+- **Crypto (USDC on Base):** `0x4d2550551bdade10f9168c5930E2F787f983BBBc`
