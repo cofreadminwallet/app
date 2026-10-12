@@ -204,7 +204,7 @@ In compliance with the AGPL-3.0-or-later terms:
 - **Official Discord:** `@cofreadmin`
 - **Official Feedback Form:** [Submit Feedback](https://forms.gle/MBpyniv5zf795wi97)
 - **Documentation & Resources:** [GitHub Docs Repository](https://github.com/cofreadminwallet/docs)
-- **Product Lifecycle & UX Flow:** [`docs/product-flow.md`](./docs/product-flow.md)
+- **Product Lifecycle & UX Flow:** [`GitHub Docs Repository/.. product-flow.md`](https://github.com/cofreadminwallet/docs/blob/main/en-us/product-flow.md)
 
 ---
 
