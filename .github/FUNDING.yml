@@ -1,5 +1,11 @@
 # GitHub Sponsors
 github: erissontech
 
-# USDC/Base
+# BTC/Bitcoin
+custom: ["https://www.blockchain.com/explorer/addresses/btc/bc1qggt04qwsen06g9yezs5x54uq4gtsw8u7rxfrmf"]
+
+# USDC/Base or ETH/Base
 custom: ["https://basescan.org/address/0x4d2550551bdade10f9168c5930E2F787f983BBBc"]
+
+#SOL/Solana
+custom: ["https://solscan.io/account/5gy9xKqSwtZxbvFa87ZScuwBmvzt5RixM5Pvk3Sdwkv2"]
