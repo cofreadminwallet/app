@@ -217,10 +217,8 @@ See the [`LICENSE.md`](./LICENSE.md) file for full details.
 ---
 
 <small>
-💖 Support / Donate
-
-Support the development of **CofreAdmin**:
+💖 Donate Support the development:
 
 - **Fiat:** [GitHub Sponsors](https://github.com/sponsors/erissontech)
-- **Crypto (USDC on Base):** [`0x4d2550551bdade10f9168c5930E2F787f983BBBc`](https://basescan.org/address/0x4d2550551bdade10f9168c5930E2F787f983BBBc)
+- **Crypto:** [BTC/USDC/ETH/SOL](https://github.com/cofreadminwallet/app/blob/main/.github/donate.md)
 </small>
