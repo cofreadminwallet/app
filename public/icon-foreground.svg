@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Vault Body Shadow -->
+    <filter id="fgVaultShadow" x="-15%" y="-15%" width="135%" height="135%">
+      <feDropShadow dx="12" dy="12" stdDeviation="0" flood-color="#000000" />
+    </filter>
+
+    <!-- Vault Body Purple Gradient (from #9333EA to #6B21A8) -->
+    <linearGradient id="fgVaultGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#9333EA" />
+      <stop offset="100%" stop-color="#6B21A8" />
+    </linearGradient>
+
+    <!-- Wheel Rim Gradient -->
+    <linearGradient id="fgDialGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#D8B4FE" />
+      <stop offset="100%" stop-color="#A855F7" />
+    </linearGradient>
+  </defs>
+
+  <!-- Centered strictly inside Android Adaptive Safe Zone (inner ~330px out of 512px) -->
+  <g transform="translate(18, 18)">
+    <!-- ==================== MAIN VAULT BODY ==================== -->
+    <g filter="url(#fgVaultShadow)">
+      <!-- Main Vault Box: Rich Purple Rounded Body with thick black border -->
+      <rect x="94" y="116" width="248" height="248" rx="46" fill="url(#fgVaultGrad)" stroke="#000000" stroke-width="16" />
+
+      <!-- Top Vault Highlight Bar (Glass reflection) -->
+      <rect x="120" y="130" width="196" height="12" rx="6" fill="#E9D5FF" opacity="0.45" />
+
+      <!-- Left Hinges -->
+      <rect x="84" y="158" width="18" height="38" rx="5" fill="#581C87" stroke="#000000" stroke-width="10" />
+      <rect x="84" y="284" width="18" height="38" rx="5" fill="#581C87" stroke="#000000" stroke-width="10" />
+
+      <!-- Vault Door Wheel / Handle -->
+      <circle cx="218" cy="240" r="80" fill="#581C87" stroke="#000000" stroke-width="10" />
+      <circle cx="218" cy="240" r="66" fill="url(#fgDialGrad)" stroke="#000000" stroke-width="12" />
+
+      <!-- Wheel Spokes (45deg rotation) -->
+      <line x1="166" y1="188" x2="270" y2="292" stroke="#000000" stroke-width="10" stroke-linecap="round" />
+      <line x1="270" y1="188" x2="166" y2="292" stroke="#000000" stroke-width="10" stroke-linecap="round" />
+      <line x1="218" y1="174" x2="218" y2="306" stroke="#000000" stroke-width="7" stroke-linecap="round" />
+      <line x1="152" y1="240" x2="284" y2="240" stroke="#000000" stroke-width="7" stroke-linecap="round" />
+
+      <!-- Wheel Center Core -->
+      <circle cx="218" cy="240" r="28" fill="#3B0764" stroke="#000000" stroke-width="10" />
+      <circle cx="218" cy="240" r="12" fill="#B8F256" stroke="#000000" stroke-width="5" />
+      <circle cx="218" cy="240" r="3.5" fill="#000000" />
+    </g>
+
+    <!-- ==================== LIME ADMIN EQUALIZER PANEL ==================== -->
+    <g filter="url(#fgVaultShadow)">
+      <rect x="330" y="148" width="56" height="184" rx="18" fill="#B8F256" stroke="#000000" stroke-width="14" />
+
+      <!-- Slider 1 (Top) -->
+      <line x1="358" y1="174" x2="358" y2="198" stroke="#000000" stroke-width="5" stroke-linecap="round" opacity="0.3" />
+      <rect x="344" y="172" width="28" height="12" rx="6" fill="#000000" />
+      <circle cx="358" cy="178" r="2" fill="#B8F256" />
+
+      <!-- Slider 2 (Middle - Offset right) -->
+      <line x1="358" y1="222" x2="358" y2="250" stroke="#000000" stroke-width="5" stroke-linecap="round" opacity="0.3" />
+      <rect x="350" y="234" width="28" height="12" rx="6" fill="#000000" />
+      <circle cx="364" cy="240" r="2" fill="#B8F256" />
+
+      <!-- Slider 3 (Bottom - Offset left) -->
+      <line x1="358" y1="276" x2="358" y2="304" stroke="#000000" stroke-width="5" stroke-linecap="round" opacity="0.3" />
+      <rect x="338" y="288" width="28" height="12" rx="6" fill="#000000" />
+      <circle cx="352" cy="294" r="2" fill="#B8F256" />
+    </g>
+  </g>
+</svg>

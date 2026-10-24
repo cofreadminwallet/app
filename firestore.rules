@@ -1,0 +1,129 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 1. Global Zero-Trust Default Deny
+    // No unspecified collection or path can be read or written
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Security helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-@.]+$');
+    }
+
+    function isOwnerOfExistingData(userKey) {
+      return isSignedIn() && resource != null && (
+        request.auth.uid == userKey ||
+        userKey == 'google_' + request.auth.uid ||
+        resource.data.authId == request.auth.uid ||
+        (request.auth.token.email != null && request.auth.token.email_verified != false && (
+          resource.data.email == request.auth.token.email ||
+          (resource.data.user != null && resource.data.user.email == request.auth.token.email)
+        ))
+      );
+    }
+
+    function isOwnerOfIncomingData(userKey) {
+      return isSignedIn() && request.resource != null && (
+        request.auth.uid == userKey ||
+        userKey == 'google_' + request.auth.uid ||
+        request.resource.data.authId == request.auth.uid ||
+        (request.auth.token.email != null && request.auth.token.email_verified != false && (
+          request.resource.data.email == request.auth.token.email ||
+          (request.resource.data.user != null && request.resource.data.user.email == request.auth.token.email)
+        ))
+      );
+    }
+
+    // 2. Operational user data synchronization collection (userData)
+    // Only the authenticated account owner can read, write, or delete their own data
+    // Shielded against IDOR / Cross-Tenant Overwrite: strictly isolates existing resource from incoming request.resource
+    match /userData/{userKey} {
+      allow get: if isSignedIn() && (
+        resource == null ||
+        isOwnerOfExistingData(userKey)
+      );
+      allow list: if isSignedIn() && (
+        resource.data.authId == request.auth.uid ||
+        (request.auth.token.email != null && request.auth.token.email_verified != false && (
+          resource.data.email == request.auth.token.email ||
+          (resource.data.user != null && resource.data.user.email == request.auth.token.email)
+        ))
+      );
+      allow create: if isValidId(userKey) && resource == null && isOwnerOfIncomingData(userKey);
+      allow update: if isValidId(userKey) && resource != null && isOwnerOfExistingData(userKey) && isOwnerOfIncomingData(userKey);
+      allow delete: if isValidId(userKey) && resource != null && isOwnerOfExistingData(userKey);
+    }
+
+    // 3. Permanent legal audit archive (Legal compliance / statutory evidentiary record)
+    // Allows creation only by the authenticated owner during terms consent or account deletion
+    // Allows read-only access by the audited account owner
+    // STRICTLY FORBIDS modification (update) and deletion (delete) - IMMUTABLE PROBATORY RECORD
+    match /legalAuditArchive/{archiveId} {
+      allow create: if isSignedIn() && isValidId(archiveId) && (
+        request.resource.data.userEmail == request.auth.token.email ||
+        request.resource.data.userUid == request.auth.uid
+      );
+      allow get: if isSignedIn() && (
+        resource.data.userUid == request.auth.uid ||
+        (request.auth.token.email != null && resource.data.userEmail == request.auth.token.email)
+      );
+      allow list: if isSignedIn() && (
+        resource.data.userUid == request.auth.uid ||
+        (request.auth.token.email != null && resource.data.userEmail == request.auth.token.email)
+      );
+      allow update, delete: if false;
+    }
+
+    // 4. Compatible user collection by UID, email, and owner key (users)
+    match /users/{userId} {
+      allow get: if isSignedIn() && (
+        resource == null ||
+        request.auth.uid == userId ||
+        isOwnerOfExistingData(userId)
+      );
+      allow list: if isSignedIn() && (
+        resource.data.authId == request.auth.uid ||
+        (request.auth.token.email != null && request.auth.token.email_verified != false && (
+          resource.data.email == request.auth.token.email ||
+          (resource.data.user != null && resource.data.user.email == request.auth.token.email)
+        ))
+      );
+      allow write: if isSignedIn() && isValidId(userId) && (
+        request.auth.uid == userId ||
+        isOwnerOfIncomingData(userId)
+      );
+
+      match /{document=**} {
+        allow read, write: if isSignedIn() && isValidId(userId) && (
+          request.auth.uid == userId ||
+          isOwnerOfExistingData(userId)
+        );
+      }
+    }
+
+    // 5. Legacy cofreadmin_users collection (for retroactive restoration of existing accounts)
+    match /cofreadmin_users/{userKey} {
+      allow get: if isSignedIn() && (
+        resource == null ||
+        isOwnerOfExistingData(userKey)
+      );
+      allow list: if isSignedIn() && (
+        resource.data.authId == request.auth.uid ||
+        (request.auth.token.email != null && request.auth.token.email_verified != false && (
+          resource.data.email == request.auth.token.email ||
+          (resource.data.user != null && resource.data.user.email == request.auth.token.email)
+        ))
+      );
+      allow create: if isValidId(userKey) && resource == null && isOwnerOfIncomingData(userKey);
+      allow update: if isValidId(userKey) && resource != null && isOwnerOfExistingData(userKey) && isOwnerOfIncomingData(userKey);
+      allow delete: if isValidId(userKey) && resource != null && isOwnerOfExistingData(userKey);
+    }
+  }
+}
