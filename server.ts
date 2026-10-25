@@ -18,6 +18,7 @@ import {
 } from 'viem';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import { base, baseSepolia } from 'viem/chains';
+import { APP_VERSION } from './src/config/version';
 
 const app = express();
 // Trust only the first reverse proxy hop (Cloud Run / App Hosting), preventing X-Forwarded-For client spoofing
@@ -273,7 +274,7 @@ app.get('/api/version', (_req, res) => {
   res.setHeader('Expires', '0');
 
   // Read current package version & build time
-  let appVersion = 'v1.0.2-b';
+  let appVersion = APP_VERSION;
   try {
     const versionFilePath = path.join(process.cwd(), 'src', 'config', 'version.ts');
     if (fs.existsSync(versionFilePath)) {
@@ -1570,6 +1571,34 @@ app.get('/sw.js', (_req, res) => {
 // 4. Vite & Production SPA Serving
 // -------------------------------------------------------------
 async function startServer() {
+  // Bind port immediately on startup so container readiness and pre-warming probes succeed instantly
+  const server = app.listen(PORT, '0.0.0.0', () => {
+    console.log(`CofreAdmin Server rodando na porta ${PORT}`);
+    console.log(`🚀 Relayer ativo para pagamentos sem ETH (taxa em USDC) na Base.`);
+    console.log(`👉 Endereço do Relayer: ${relayerAccount.address}`);
+  });
+
+  server.on('error', (err: any) => {
+    console.error(`[Server] Erro ao iniciar servidor na porta ${PORT}:`, err);
+  });
+
+  // Graceful shutdown for Cloud Run / App Hosting container lifecycle
+  const handleShutdown = (signal: string) => {
+    console.log(`[Server] Sinal ${signal} recebido. Encerrando conexões com segurança...`);
+    server.close(() => {
+      console.log('[Server] Servidor finalizado com sucesso.');
+      process.exit(0);
+    });
+    // Force shutdown after 10s timeout if connections don't drain
+    setTimeout(() => {
+      console.error('[Server] Timeout no encerramento forçando finalização.');
+      process.exit(1);
+    }, 10000).unref();
+  };
+
+  process.on('SIGTERM', () => handleShutdown('SIGTERM'));
+  process.on('SIGINT', () => handleShutdown('SIGINT'));
+
   if (process.env.NODE_ENV !== 'production') {
     const devDistAssets = path.join(process.cwd(), 'dist', 'assets');
     if (fs.existsSync(devDistAssets)) {
@@ -1597,16 +1626,26 @@ async function startServer() {
       res.setHeader('Expires', '0');
       next();
     });
+
     // Dynamic import to prevent loading Vite and its dependencies into memory in production
-    const { createServer: createViteServer } = await import('vite');
-    const vite = await createViteServer({
-      server: {
-        middlewareMode: true,
-        hmr: false,
-      },
-      appType: 'spa',
+    const viteReadyPromise = import('vite').then(({ createServer: createViteServer }) =>
+      createViteServer({
+        server: {
+          middlewareMode: true,
+          hmr: false,
+        },
+        appType: 'spa',
+      })
+    );
+
+    app.use(async (req, res, next) => {
+      try {
+        const vite = await viteReadyPromise;
+        vite.middlewares(req, res, next);
+      } catch (err) {
+        next(err);
+      }
     });
-    app.use(vite.middlewares);
   } else {
     // Resolve dist folder safely across different container execution paths
     const candidateDist = path.join(process.cwd(), 'dist');
@@ -1675,33 +1714,6 @@ async function startServer() {
       }
     });
   }
-
-  const server = app.listen(PORT, '0.0.0.0', () => {
-    console.log(`CofreAdmin Server rodando na porta ${PORT}`);
-    console.log(`🚀 Relayer ativo para pagamentos sem ETH (taxa em USDC) na Base.`);
-    console.log(`👉 Endereço do Relayer: ${relayerAccount.address}`);
-  });
-
-  server.on('error', (err: any) => {
-    console.error(`[Server] Erro ao iniciar servidor na porta ${PORT}:`, err);
-  });
-
-  // Graceful shutdown for Cloud Run / App Hosting container lifecycle
-  const handleShutdown = (signal: string) => {
-    console.log(`[Server] Sinal ${signal} recebido. Encerrando conexões com segurança...`);
-    server.close(() => {
-      console.log('[Server] Servidor finalizado com sucesso.');
-      process.exit(0);
-    });
-    // Force shutdown after 10s timeout if connections don't drain
-    setTimeout(() => {
-      console.error('[Server] Timeout no encerramento forçando finalização.');
-      process.exit(1);
-    }, 10000).unref();
-  };
-
-  process.on('SIGTERM', () => handleShutdown('SIGTERM'));
-  process.on('SIGINT', () => handleShutdown('SIGINT'));
 }
 
 startServer();

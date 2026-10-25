@@ -24,6 +24,7 @@ import { BottomNav } from './components/BottomNav';
 import { LoginScreen } from './components/LoginScreen';
 import { AppLockScreen } from './components/AppLockScreen';
 import { PWAInstallBanner } from './components/PWAInstallBanner';
+import { QuickCategorizeReceiveToast, QuickCategorizeTxData } from './components/QuickCategorizeReceiveToast';
 
 // Code-splitting / Lazy loading heavy secondary screens to make initial app launch instantaneous
 const VaultsScreen = React.lazy(() => import('./components/VaultsScreen').then(m => ({ default: m.VaultsScreen })));
@@ -216,6 +217,7 @@ export default function App() {
   const [isCryptoReceiveOpen, setIsCryptoReceiveOpen] = useState(false);
   const [scannedCryptoData, setScannedCryptoData] = useState<ParsedCryptoData | null>(null);
   const [selectedDetailTx, setSelectedDetailTx] = useState<Transaction | null>(null);
+  const [pendingQuickCategorizeTx, setPendingQuickCategorizeTx] = useState<QuickCategorizeTxData | null>(null);
   
   // Live on-chain balances directly from Base Blockchain
   const [onChainBalances, setOnChainBalances] = useState<WalletBalances>({
@@ -581,13 +583,28 @@ export default function App() {
       } else if (newlyReceivedTxsToAlert.length > 0) {
         // Only notify if there are genuine, freshly arrived real-time USDC transactions
         const totalReceived = newlyReceivedTxsToAlert.reduce((sum, tx) => sum + tx.amount, 0);
-        showToast(`Recebimento de $${totalReceived.toFixed(2)} USDC registrado no Extrato! 💰`, '⚡');
+        const firstNewTx = newlyReceivedTxsToAlert[0];
+        const savedContacts = db.getContacts(profileKey);
+        const matchedContact = savedContacts.find(
+          (c) => c.address.toLowerCase() === (firstNewTx?.fromAddress || '').toLowerCase()
+        );
+
+        // Display interactive 1-Tap Quick Categorization notification banner
+        setPendingQuickCategorizeTx({
+          id: `tx-onchain-${firstNewTx.txHash}`,
+          amount: totalReceived,
+          tokenSymbol: firstNewTx.tokenSymbol || 'USDC',
+          fromAddress: firstNewTx.fromAddress,
+          txHash: firstNewTx.txHash,
+          contactName: matchedContact?.name,
+        });
+
         triggerHaptic('success');
         if (user.pushNotificationsEnabled && user.notifyOnReceivePayment !== false) {
           NotificationService.notifyPaymentReceived({
             amount: totalReceived,
             tokenSymbol: 'USDC',
-            fromAddress: newlyReceivedTxsToAlert[0]?.fromAddress,
+            fromAddress: firstNewTx?.fromAddress,
           });
         }
       } else if (options?.showToastOnSync) {
@@ -968,7 +985,7 @@ export default function App() {
       if (isMounted) {
         setIsAuthChecking(false);
       }
-    }, 1800);
+    }, 4500);
 
     return () => {
       isMounted = false;
@@ -1938,6 +1955,48 @@ export default function App() {
     showToast(isEn ? 'Transaction updated in your Activity! ✨' : 'Lançamento atualizado no seu extrato! ✨', '📝');
   };
 
+  // Handler: 1-Tap Quick Categorize for received transactions directly from notification
+  const handleQuickCategorizeReceive = (txId: string, categoryId: string) => {
+    const categoryObj = categories.find(c => c.id === categoryId);
+    setTransactions(prev =>
+      prev.map(tx => {
+        if (tx.id === txId || (tx.txHash && txId.includes(tx.txHash))) {
+          return {
+            ...tx,
+            categoryId,
+            description: tx.description.includes(':')
+              ? `Recebimento ${tx.tokenSymbol || 'USDC'}: ${tx.description.split(':')[1].trim()}`
+              : (categoryObj ? `${categoryObj.name}` : tx.description),
+            isOrganized: true,
+          };
+        }
+        return tx;
+      })
+    );
+
+    const currentProfileKey = getProfileStorageKey(user);
+    setTimeout(() => {
+      const updatedTxs = db.getTransactions(currentProfileKey);
+      const modified = updatedTxs.map(tx => {
+        if (tx.id === txId || (tx.txHash && txId.includes(tx.txHash))) {
+          return { ...tx, categoryId, isOrganized: true };
+        }
+        return tx;
+      });
+      void db.saveTransactions(modified, currentProfileKey);
+      if (user.isLoggedIn && user.email) {
+        void db.saveToCloud(user, categories, vaults, modified);
+      }
+    }, 50);
+
+    showToast(
+      isEn
+        ? `Categorized as ${categoryObj?.emoji || ''} ${categoryObj?.name || 'Category'}!`
+        : `Categorizado como ${categoryObj?.emoji || ''} ${categoryObj?.name || 'Categoria'}!`,
+      '🏷️'
+    );
+  };
+
   // Handler: Connect Google Account directly from profile/app settings
   const handleConnectGoogle = async () => {
     triggerHaptic('success');
@@ -2172,12 +2231,22 @@ export default function App() {
               </div>
               <button
                 onClick={() => setToastMessage(null)}
-                className="text-emerald-900/60 hover:text-emerald-950 text-xs font-black p-1 hover:bg-emerald-300/40 rounded-lg transition-colors flex-shrink-0"
+                className="text-emerald-900/60 hover:text-emerald-950 text-xs font-black p-1 hover:bg-emerald-300/40 rounded-lg transition-colors flex-shrink-0 cursor-pointer"
               >
                 ✕
               </button>
             </div>
           </div>
+        )}
+
+        {/* Interactive 1-Tap Quick Categorize Toast for newly received transactions */}
+        {pendingQuickCategorizeTx && (
+          <QuickCategorizeReceiveToast
+            transaction={pendingQuickCategorizeTx}
+            categories={categories}
+            onSelectCategory={handleQuickCategorizeReceive}
+            onClose={() => setPendingQuickCategorizeTx(null)}
+          />
         )}
 
         {/* Sticky Header */}

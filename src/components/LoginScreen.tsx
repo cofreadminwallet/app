@@ -123,9 +123,20 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       let cloudData: any = null;
       if (isGoogleAuth) {
         try {
+          await authService.verifyActiveSessionToken(false).catch(() => {});
           const cloudPromise = db.loadFromCloud(authDocKey, realUserEmail, uid);
           const timeoutCloud = new Promise<null>((resolve) => setTimeout(() => resolve(null), 8000));
           cloudData = await Promise.race([cloudPromise, timeoutCloud]);
+
+          // Secondary confirmation if initial read returned empty right after OAuth popup handshake
+          if (!cloudData) {
+            await new Promise((resolve) => setTimeout(resolve, 350));
+            await authService.verifyActiveSessionToken(true).catch(() => {});
+            cloudData = await Promise.race([
+              db.loadFromCloud(authDocKey, realUserEmail, uid),
+              new Promise<null>((resolve) => setTimeout(() => resolve(null), 6000)),
+            ]);
+          }
         } catch (cloudErr) {
           console.warn('Aviso de verificação do Firestore no login:', cloudErr);
         }
@@ -341,6 +352,22 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           resolvedTransactions || []
         );
         void db.saveToCloud(loginPayload as any, resolvedCategories || [], resolvedVaults || [], resolvedTransactions || []);
+        return;
+      }
+
+      // Guard: if parallel session listener already restored this account, complete login directly
+      const postCheckUser = db.getUser(authDocKey);
+      if (
+        postCheckUser &&
+        postCheckUser.isLoggedIn &&
+        (postCheckUser.termsAccepted || postCheckUser.hasCompletedOnboarding || postCheckUser.walletAddress)
+      ) {
+        onLoginSuccess(
+          postCheckUser,
+          db.getCategories(authDocKey),
+          db.getVaults(authDocKey),
+          db.getTransactions(authDocKey)
+        );
         return;
       }
 

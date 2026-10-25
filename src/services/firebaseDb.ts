@@ -457,24 +457,45 @@ export class FirebaseDatabaseService {
   async loadFromCloud(userIdOrEmail: string, email?: string, uid?: string): Promise<CloudUserData | null> {
     if (!firestoreDb || (!userIdOrEmail && !email && !uid)) return null;
     try {
+      // Ensure Firebase Auth token is attached to Firestore SDK before querying post-login
+      if (auth?.currentUser) {
+        try {
+          await auth.currentUser.getIdToken();
+        } catch {
+          // Proceed with cached session if offline
+        }
+      }
+
       const activeUid = uid || auth?.currentUser?.uid;
       const activeEmail = email || auth?.currentUser?.email || undefined;
       const candidates = getCandidateDocIds(userIdOrEmail, activeEmail, activeUid);
       const foundSnapshots: CloudUserData[] = [];
 
-      // 1. Direct read across all candidate collections (userData, users, cofreadmin_users)
+      // 1. Direct parallel read across all candidate collections (userData, users, cofreadmin_users)
+      const directReadTasks: Promise<CloudUserData | null>[] = [];
       for (const colName of CANDIDATE_USER_COLLECTIONS) {
         for (const candidateId of candidates) {
-          try {
-            const userRef = doc(firestoreDb, colName, candidateId);
-            const snap = await getDoc(userRef);
-            if (snap.exists()) {
-              const data = normalizeCloudUserData(snap.data());
-              foundSnapshots.push(data);
-            }
-          } catch (errDoc) {
-            // Continue search across other candidates
-          }
+          directReadTasks.push(
+            (async () => {
+              try {
+                const userRef = doc(firestoreDb, colName, candidateId);
+                const snap = await getDoc(userRef);
+                if (snap.exists()) {
+                  return normalizeCloudUserData(snap.data());
+                }
+              } catch {
+                // Continue search across other candidates
+              }
+              return null;
+            })()
+          );
+        }
+      }
+
+      const directResults = await Promise.all(directReadTasks);
+      for (const item of directResults) {
+        if (item) {
+          foundSnapshots.push(item);
         }
       }
 
