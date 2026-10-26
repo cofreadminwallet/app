@@ -125,16 +125,18 @@ export class Web3Service {
         if (!userUid.startsWith('discord_')) {
           candidates.add(`discord_${userUid}`);
         } else {
-          candidates.add(userUid.slice('discord_'.length));
+          const strippedId = userUid.slice('discord_'.length);
+          // Only allow bare numeric Discord IDs (<discord_id>); never bare email strings (which belong to Google legacy)
+          if (strippedId && !strippedId.includes('@') && strippedId !== sanitizedEmail) {
+            candidates.add(strippedId);
+          }
         }
       }
       if (sanitizedEmail) {
         candidates.add(`discord_${sanitizedEmail}`);
-        candidates.add(sanitizedEmail);
       }
       if (cleanEmail) {
         candidates.add(`discord_${cleanEmail}`);
-        candidates.add(cleanEmail);
       }
       return Array.from(candidates).filter(Boolean);
     }
@@ -171,7 +173,7 @@ export class Web3Service {
     const account = mnemonicToAccount(mnemonic);
     const hdKey = account.getHdKey();
     if (!hdKey.privateKey) {
-      throw new Error('Falha crítica na derivação da chave privada a partir da mnemônica BIP-39.');
+      throw new Error('Critical failure deriving private key from BIP-39 mnemonic.');
     }
     const privateKey = toHex(hdKey.privateKey) as Hex;
     return {
@@ -340,7 +342,31 @@ export class Web3Service {
       throw new Error('Identidade do usuário ausente. É necessário efetuar login para acessar a carteira.');
     }
 
-    const candidates = Web3Service.getIdentityCandidates(userEmail, userUid);
+    const isDiscordSession = Boolean(userUid && userUid.startsWith('discord_'));
+    const cleanEmail = (userEmail || '').trim().toLowerCase();
+    const sanitizedEmail = cleanEmail.replace(/[^a-zA-Z0-9_-]/g, '_');
+
+    // Cross-provider collision guard: detect if a Discord session on this browser accidentally cloned the Google wallet for the same email
+    let googleAddrOnDevice = '';
+    let googlePkCipherOnDevice = '';
+    if (isDiscordSession && sanitizedEmail) {
+      googleAddrOnDevice = (
+        localStorage.getItem(`cofreadmin_addr_google_${sanitizedEmail}`) ||
+        localStorage.getItem(`cofreadmin_addr_${sanitizedEmail}`) ||
+        ''
+      ).trim();
+      googlePkCipherOnDevice = (
+        localStorage.getItem(`cofreadmin_pk_google_${sanitizedEmail}`) ||
+        localStorage.getItem(`cofreadmin_pk_${sanitizedEmail}`) ||
+        ''
+      ).trim();
+    }
+
+    const candidates = Web3Service.getIdentityCandidates(
+      userEmail,
+      userUid,
+      isDiscordSession ? 'discord' : 'google'
+    );
 
     let rawStored: string | undefined = existingPrivateKey || undefined;
     if (!rawStored) {
@@ -359,6 +385,17 @@ export class Web3Service {
       if (addr) {
         cachedAddr = addr;
         break;
+      }
+    }
+
+    // If this Discord session holds an exact clone of the Google wallet on the same browser, discard the clone so Discord generates its own independent wallet
+    if (isDiscordSession && googleAddrOnDevice) {
+      if (cachedAddr && cachedAddr.toLowerCase() === googleAddrOnDevice.toLowerCase()) {
+        cachedAddr = '';
+        rawStored = undefined;
+      } else if (rawStored && googlePkCipherOnDevice && rawStored === googlePkCipherOnDevice) {
+        cachedAddr = '';
+        rawStored = undefined;
       }
     }
 
@@ -387,8 +424,17 @@ export class Web3Service {
         if (activePassphrase) {
           setSessionPassphrase(activePassphrase);
         }
+        // Check if decrypted key matches the Google wallet on this device during a Discord session
+        if (isDiscordSession && googleAddrOnDevice && resolvedPk && resolvedPk.startsWith('0x') && resolvedPk.length === 66) {
+          const derivedCheck = privateKeyToAccount(resolvedPk as Hex);
+          if (derivedCheck.address.toLowerCase() === googleAddrOnDevice.toLowerCase()) {
+            resolvedPk = '';
+            rawStored = undefined;
+            cachedAddr = '';
+          }
+        }
         // If cryptographic envelope requires upgrade to current vault version, re-encrypts transparently
-        if (needsVaultEnvelopeUpgrade(rawStored, Boolean(activePassphrase))) {
+        if (resolvedPk && needsVaultEnvelopeUpgrade(rawStored || '', Boolean(activePassphrase))) {
           await Web3Service.saveWalletCredentials({
             userEmail,
             userUid,
@@ -407,14 +453,24 @@ export class Web3Service {
     // CASE 2: Key directly provided for immediate local import/sync
     else if (rawStored && rawStored.startsWith('0x') && rawStored.length === 66) {
       resolvedPk = rawStored;
-      try {
-        await Web3Service.saveWalletCredentials({
-          userEmail,
-          userUid,
-          privateKey: resolvedPk,
-          passphrase: activePassphrase,
-        });
-      } catch {}
+      if (isDiscordSession && googleAddrOnDevice) {
+        const derivedCheck = privateKeyToAccount(resolvedPk as Hex);
+        if (derivedCheck.address.toLowerCase() === googleAddrOnDevice.toLowerCase()) {
+          resolvedPk = '';
+          rawStored = undefined;
+          cachedAddr = '';
+        }
+      }
+      if (resolvedPk) {
+        try {
+          await Web3Service.saveWalletCredentials({
+            userEmail,
+            userUid,
+            privateKey: resolvedPk,
+            passphrase: activePassphrase,
+          });
+        } catch {}
+      }
     }
 
     // SECURITY RULE: If wallet record was present but key could not be unlocked,

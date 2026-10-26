@@ -19,11 +19,11 @@ export const LegalTermsModal: React.FC<LegalTermsModalProps> = ({
   const { language } = useI18n();
   const isEn = language === 'en-US';
 
-  const resolvedTermsUrl = externalTermsUrl || (
-    isEn
-      ? 'https://github.com/cofreadminwallet/docs/blob/main/en-us/privacy-policy/privacy-policy.md'
-      : 'https://github.com/cofreadminwallet/docs/blob/main/pt-br/termos/termos-e-privacidade.md'
-  );
+  const resolvedTermsUrl =
+    externalTermsUrl ||
+    (isEn
+      ? 'https://github.com/cofreadminwallet/app/blob/main/docs/en-us/privacy-policy/privacy-policy.md'
+      : 'https://github.com/cofreadminwallet/app/blob/main/docs/pt-br/termos/termos-e-privacidade.md');
 
   if (!isOpen) return null;
 

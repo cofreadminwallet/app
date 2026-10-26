@@ -317,6 +317,45 @@ export default function App() {
     mnemonic?: string;
   } | null>(null);
 
+  // Ensure active Discord session has an isolated wallet distinct from any Google account on the same device
+  useEffect(() => {
+    if (!user.isLoggedIn || user.isGuest || user.provider !== 'discord') return;
+    const discordKey = user.authId || (user.discordId ? `discord_${user.discordId}` : '');
+    if (!discordKey || !discordKey.startsWith('discord_')) return;
+
+    let isCancelled = false;
+    Web3Service.connectGoogleWallet(user.email, user.web3Network || 'base', discordKey)
+      .then((res) => {
+        if (isCancelled || !res.address) return;
+        if (!user.walletAddress || res.address.toLowerCase() !== user.walletAddress.toLowerCase()) {
+          setUser((prev) => {
+            const updated: UserProfile = {
+              ...prev,
+              walletAddress: res.address,
+              walletPrivateKey: res.privateKey || prev.walletPrivateKey,
+              walletMnemonic: res.mnemonic || prev.walletMnemonic,
+            };
+            void db.saveUser(updated, discordKey);
+            return updated;
+          });
+          if (res.isNewlyCreated && res.privateKey) {
+            setMandatoryBackupState({
+              isOpen: true,
+              publicAddress: res.address,
+              privateKey: res.privateKey,
+              mnemonic: res.mnemonic,
+            });
+          }
+          refreshOnChainBalance(res.address, user.web3Network || 'base');
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [user.isLoggedIn, user.isGuest, user.provider, user.authId, user.discordId, user.email]);
+
   // Future Wallet Upgrade / Rotation Check (triggered only if a previous generation key is staged)
   useEffect(() => {
     if (!user.isLoggedIn || user.isGuest || !user.walletAddress) {
@@ -793,18 +832,43 @@ export default function App() {
         let localExistingCandidate: UserProfile | null = null;
         for (const k of candidateProfileKeys) {
           const u = db.getUser(k);
+          const matchesGoogleIdentity =
+            u.provider !== 'discord' &&
+            !(u.authId && u.authId.startsWith('discord_')) &&
+            Boolean(
+              (u.email && u.email.trim().toLowerCase() === userEmail.toLowerCase()) ||
+              (u.authId && u.authId.toLowerCase() === googleProfileKey.toLowerCase())
+            );
           if (
             u &&
-            (u.walletAddress || u.termsAccepted || u.hasCompletedOnboarding || (u.email && u.email.toLowerCase() === userEmail.toLowerCase()))
+            matchesGoogleIdentity &&
+            (u.walletAddress || u.termsAccepted || u.hasCompletedOnboarding)
           ) {
             localExistingCandidate = u;
             break;
           }
         }
 
+        // Check if user already has an existing Web3 wallet stored locally on this device for this exact Google identity
+        let hasLocalGoogleWallet = false;
+        const googleIdCandidates = Web3Service.getIdentityCandidates(userEmail, googleProfileKey, 'google');
+        for (const idKey of googleIdCandidates) {
+          if (
+            db.getWalletKeyCipherSync(`cofreadmin_addr_${idKey}`) ||
+            db.getWalletKeyCipherSync(`cofreadmin_pk_${idKey}`)
+          ) {
+            hasLocalGoogleWallet = true;
+            break;
+          }
+        }
+
+        const cloudRecordEmail = (cloudData?.user?.email || cloudData?.email || '').trim().toLowerCase();
+        const cloudIdentityMatches = !cloudRecordEmail || cloudRecordEmail === userEmail.toLowerCase();
+
         // Early-return logic: verify if Google profile already has a complete Firestore record or local record
         const hasCompleteFirestoreRecord = Boolean(
           cloudData &&
+          cloudIdentityMatches &&
           (cloudData.user || cloudData.email || (cloudData as any).walletAddress) &&
           (
             (cloudData.user && (cloudData.user.walletAddress || cloudData.user.termsAccepted || cloudData.user.hasCompletedOnboarding)) ||
@@ -817,8 +881,11 @@ export default function App() {
         );
 
         const hasCompleteLocalRecord = Boolean(
-          localExistingCandidate &&
-          (localExistingCandidate.walletAddress || localExistingCandidate.termsAccepted || localExistingCandidate.hasCompletedOnboarding)
+          hasLocalGoogleWallet ||
+          (
+            localExistingCandidate &&
+            (localExistingCandidate.walletAddress || localExistingCandidate.termsAccepted || localExistingCandidate.hasCompletedOnboarding)
+          )
         );
 
         if ((hasCompleteFirestoreRecord || hasCompleteLocalRecord) && isMounted) {
@@ -2124,7 +2191,7 @@ export default function App() {
   if (!user.isLoggedIn) {
     return (
       <LoginScreen
-        onLoginSuccess={(updates, newCategories, newVaults, newTransactions) => {
+        onLoginSuccess={(updates, newCategories, newVaults, newTransactions, newlyCreatedWallet) => {
           const isSecurityActive = WebAuthnService.isDeviceSecurityEnabled(
             updates.deviceSecurityEnabled ?? (updates.appLockEnabled ?? false)
           );
@@ -2182,6 +2249,15 @@ export default function App() {
 
           if (updated.walletAddress) {
             refreshOnChainBalance(updated.walletAddress, updated.web3Network || 'base');
+          }
+
+          if (newlyCreatedWallet && newlyCreatedWallet.address && newlyCreatedWallet.privateKey) {
+            setMandatoryBackupState({
+              isOpen: true,
+              publicAddress: newlyCreatedWallet.address,
+              privateKey: newlyCreatedWallet.privateKey,
+              mnemonic: newlyCreatedWallet.mnemonic,
+            });
           }
 
           if (isSecurityActive) {
