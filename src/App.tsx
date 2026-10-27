@@ -1364,7 +1364,12 @@ export default function App() {
       // If locking funds into vault as an expense, ensure user has available balance
       if (data.type === 'expense') {
         if (calculations.availableBalance <= 0 || data.amount > calculations.availableBalance) {
-          showToast('Saldo insuficiente para guardar neste cofre!', '⚠️');
+          showToast(
+            language === 'en-US'
+              ? 'Insufficient balance to save in this vault!'
+              : 'Saldo insuficiente para guardar neste cofre!',
+            '⚠️'
+          );
           triggerHaptic('warning');
           return;
         }
@@ -1464,7 +1469,12 @@ export default function App() {
     // Strict balance check: cannot deposit more than available balance (with tiny epsilon for float safety)
     const available = Math.round(calculations.availableBalance * 100) / 100;
     if (available <= 0 || safeAmount > (available + 0.0001)) {
-      showToast(`Saldo insuficiente (${formatCurrency(available, user.currency)})`, '⚠️');
+      showToast(
+        language === 'en-US'
+          ? `Insufficient balance (${formatCurrency(available, user.currency)})`
+          : `Saldo insuficiente (${formatCurrency(available, user.currency)})`,
+        '⚠️'
+      );
       triggerHaptic('warning');
       return;
     }

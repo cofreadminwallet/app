@@ -951,7 +951,7 @@ export class Web3Service {
 
     if (usdcBalance < amount) {
       throw new Error(
-        `Saldo insuficiente de USDC na blockchain Base. Saldo na carteira (${account.address.slice(0, 6)}...${account.address.slice(-4)}): $${usdcBalance.toFixed(2)} USDC, valor a transferir: $${amount.toFixed(2)} USDC.`
+        `Insufficient USDC balance on Base blockchain. Wallet balance (${account.address.slice(0, 6)}...${account.address.slice(-4)}): $${usdcBalance.toFixed(2)} USDC, amount to transfer: $${amount.toFixed(2)} USDC.`
       );
     }
 
@@ -961,10 +961,10 @@ export class Web3Service {
     const rawRelayerAddress = (paymasterConfig.relayerAddress || '0x31b7BafB5Bf4ab3D892610Ae7C9cA45BdBc45233').toLowerCase();
 
     if (!ALLOWED_DEV_FEE_RECIPIENTS.includes(rawDevFeeRecipient)) {
-      throw new Error(`Endereço de destino da taxa devFeeRecipient não autorizado pelo cliente: ${rawDevFeeRecipient}`);
+      throw new Error(`Unauthorized fee recipient address: ${rawDevFeeRecipient}`);
     }
     if (!ALLOWED_RELAYERS.includes(rawRelayerAddress)) {
-      throw new Error(`Endereço de relayer despachante não autorizado pelo cliente: ${rawRelayerAddress}`);
+      throw new Error(`Unauthorized relayer address: ${rawRelayerAddress}`);
     }
 
     const devFeeRecipient = rawDevFeeRecipient as `0x${string}`;
@@ -976,18 +976,18 @@ export class Web3Service {
 
     // If provided fee exceeds regulatory ceiling (with max 5% rounding tolerance)
     if (effectiveDevFee > maxCalculatedProtocolFee * 1.05) {
-      throw new Error(`Taxa de protocolo solicitada ($${effectiveDevFee.toFixed(4)} USDC) excede o teto máximo permitido.`);
+      throw new Error(`Requested protocol fee ($${effectiveDevFee.toFixed(4)} USDC) exceeds maximum allowed ceiling.`);
     }
 
     const effectiveGasFee = typeof gasFee === 'number' && gasFee > 0 ? gasFee : 0.02;
     if (effectiveGasFee > MAX_ALLOWED_GAS_FEE_USDC) {
-      throw new Error(`Taxa de gás estimada ($${effectiveGasFee.toFixed(4)} USDC) excede o teto de segurança ($${MAX_ALLOWED_GAS_FEE_USDC} USDC). Transação cancelada para proteger seus fundos.`);
+      throw new Error(`Estimated gas fee ($${effectiveGasFee.toFixed(4)} USDC) exceeds safety ceiling ($${MAX_ALLOWED_GAS_FEE_USDC} USDC). Transaction cancelled to protect funds.`);
     }
 
     const totalRequiredUsdc = amount + effectiveDevFee + effectiveGasFee;
     if (usdcBalance + 0.000001 < totalRequiredUsdc) {
       throw new Error(
-        `Saldo insuficiente para cobrir valor + taxas na rede Base. Saldo atual: $${usdcBalance.toFixed(4)} USDC | Necessário: $${totalRequiredUsdc.toFixed(4)} USDC ($${amount.toFixed(4)} envio + $${effectiveDevFee.toFixed(4)} protocolo + $${effectiveGasFee.toFixed(4)} gás).`
+        `Insufficient balance to cover amount + network fees on Base network. Current balance: $${usdcBalance.toFixed(4)} USDC | Required: $${totalRequiredUsdc.toFixed(4)} USDC ($${amount.toFixed(4)} transfer + $${effectiveDevFee.toFixed(4)} protocol + $${effectiveGasFee.toFixed(4)} gas).`
       );
     }
 

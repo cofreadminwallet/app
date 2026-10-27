@@ -67,12 +67,12 @@ export const ExportDataModal: React.FC<ExportDataModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleDownloadPdf = () => {
+  const handleDownloadPdf = async () => {
     try {
       setIsExporting(true);
       triggerHaptic('medium');
 
-      const { doc, filename } = generateStatementPdf({
+      const { doc, filename } = await generateStatementPdf({
         period: selectedPeriod,
         transactions,
         categories,
@@ -109,7 +109,7 @@ export const ExportDataModal: React.FC<ExportDataModalProps> = ({
       setIsExporting(true);
       triggerHaptic('medium');
 
-      const { filename, blob } = generateStatementPdf({
+      const { filename, blob } = await generateStatementPdf({
         period: selectedPeriod,
         transactions,
         categories,
@@ -146,7 +146,7 @@ export const ExportDataModal: React.FC<ExportDataModalProps> = ({
         triggerHaptic('success');
       } else {
         // Direct download fallback
-        const { doc } = generateStatementPdf({
+        const { doc } = await generateStatementPdf({
           period: selectedPeriod,
           transactions,
           categories,

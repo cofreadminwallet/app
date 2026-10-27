@@ -11,7 +11,79 @@ export interface ExportDataOptions {
   categories: Category[];
   user: UserProfile;
   lang?: string;
+  logoBase64?: string;
 }
+
+let cachedLogoBase64: string | null = null;
+
+/**
+ * Loads the official CofreAdmin icon asset as base64 data URL with caching.
+ */
+export const loadLogoBase64 = async (): Promise<string | null> => {
+  if (cachedLogoBase64) return cachedLogoBase64;
+  if (typeof window === 'undefined') return null;
+
+  const candidateUrls = ['/apple-touch-icon.png', '/icon-192.png', '/cofreadmin-logo.png'];
+
+  for (const url of candidateUrls) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) continue;
+      const blob = await res.blob();
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+      if (base64) {
+        cachedLogoBase64 = base64;
+        return cachedLogoBase64;
+      }
+    } catch {
+      // Continue to next candidate
+    }
+  }
+
+  return null;
+};
+
+/**
+ * Fallback vector renderer for the official CofreAdmin Neo-Brutalist Purple Vault with Lime Sliders.
+ */
+const drawNeoVaultLogo = (doc: jsPDF, x: number, y: number, size: number) => {
+  // Vault body in signature purple (#9333EA)
+  doc.setFillColor(147, 51, 234);
+  doc.roundedRect(x, y, size, size, 2, 2, 'F');
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.6);
+  doc.roundedRect(x, y, size, size, 2, 2, 'S');
+
+  // Inner vault wheel dial (#C084FC)
+  const cx = x + size / 2;
+  const cy = y + size / 2;
+  const r = size * 0.28;
+  doc.setFillColor(192, 132, 252);
+  doc.circle(cx, cy, r, 'F');
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.5);
+  doc.circle(cx, cy, r, 'S');
+
+  // Center lock pin
+  doc.setFillColor(88, 28, 135);
+  doc.circle(cx, cy, r * 0.35, 'F');
+
+  // Lime Admin Equalizer slider on right edge (#B8F256)
+  const sliderW = size * 0.22;
+  const sliderH = size * 0.65;
+  const sliderX = x + size - sliderW * 0.7;
+  const sliderY = y + (size - sliderH) / 2;
+  doc.setFillColor(184, 242, 86);
+  doc.roundedRect(sliderX, sliderY, sliderW, sliderH, 1, 1, 'F');
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.4);
+  doc.roundedRect(sliderX, sliderY, sliderW, sliderH, 1, 1, 'S');
+};
 
 // Comprehensive regex for cleaning unsupported emojis and Unicode glyphs in standard PDF fonts
 const EMOJI_AND_SPECIAL_CHARS_REGEX =
@@ -97,7 +169,9 @@ export const filterTransactionsByPeriod = (
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 };
 
-export const generateStatementPdf = (options: ExportDataOptions): { doc: jsPDF; filename: string; blob: Blob } => {
+export const generateStatementPdf = async (
+  options: ExportDataOptions
+): Promise<{ doc: jsPDF; filename: string; blob: Blob }> => {
   const { period, transactions, categories, user, lang = user.language || 'pt-BR' } = options;
   const isEn = lang === 'en-US';
   const filtered = filterTransactionsByPeriod(transactions, period);
@@ -143,41 +217,91 @@ export const generateStatementPdf = (options: ExportDataOptions): { doc: jsPDF; 
   const pageHeight = 297;
   const margin = 14;
   const contentWidth = pageWidth - margin * 2;
+  const bannerHeight = 28;
 
   // Header Banner (Neo-brutalist dark & lime accent)
   doc.setFillColor(15, 23, 42); // slate-900
-  doc.rect(margin, margin, contentWidth, 26, 'F');
+  doc.rect(margin, margin, contentWidth, bannerHeight, 'F');
   doc.setDrawColor(0, 0, 0);
   doc.setLineWidth(0.8);
-  doc.rect(margin, margin, contentWidth, 26, 'S');
+  doc.rect(margin, margin, contentWidth, bannerHeight, 'S');
 
-  // App Brand inside Header
+  // 1. Icon in Header (Official CofreAdmin Vault Icon)
+  const iconSize = 18; // mm
+  const iconX = margin + 5;
+  const iconY = margin + 5;
+
+  const logoBase64 = options.logoBase64 || (await loadLogoBase64());
+  if (logoBase64) {
+    try {
+      doc.addImage(logoBase64, 'PNG', iconX, iconY, iconSize, iconSize);
+      doc.setDrawColor(0, 0, 0);
+      doc.setLineWidth(0.5);
+      doc.roundedRect(iconX, iconY, iconSize, iconSize, 1.5, 1.5, 'S');
+    } catch {
+      drawNeoVaultLogo(doc, iconX, iconY, iconSize);
+    }
+  } else {
+    drawNeoVaultLogo(doc, iconX, iconY, iconSize);
+  }
+
+  // 2. Titles next to Icon (without raw COFREADMIN text, cleanly formatted with subtitle & slogan)
+  const textX = iconX + iconSize + 4.5;
+
+  // Primary Document Title
   doc.setTextColor(228, 249, 126); // lime #E4F97E
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(18);
-  doc.text('COFREADMIN', margin + 6, margin + 11);
+  doc.setFontSize(13);
+  doc.text(isEn ? 'FINANCIAL STATEMENT' : 'EXTRATO FINANCEIRO', textX, margin + 11);
 
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(9);
+  // Subtitle
+  doc.setTextColor(241, 245, 249); // slate-100
   doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
   doc.text(
-    isEn
-      ? 'Financial Statement & Activity Record'
-      : 'Extrato Financeiro e Registro de Atividades',
-    margin + 6,
+    isEn ? 'Activity & Transaction Record' : 'Registro de Atividades e Transações',
+    textX,
     margin + 17
   );
 
-  // Meta info on the right
+  // Brand Slogan
+  doc.setTextColor(148, 163, 184); // slate-400
+  doc.setFont('helvetica', 'italic');
+  doc.setFontSize(7);
+  doc.text(
+    isEn ? 'CofreAdmin - Own your money. Be the admin.' : 'CofreAdmin - Seja o admin da sua grana.',
+    textX,
+    margin + 22.5
+  );
+
+  // 3. User & Wallet Metadata on right side
+  const rightX = pageWidth - margin - 5;
   const userName = sanitizeForPdf(user.name || user.username || (isEn ? 'User' : 'Usuário'));
-  doc.setTextColor(203, 213, 225);
+
+  doc.setTextColor(226, 232, 240);
+  doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
-  doc.text(`${isEn ? 'Account Holder' : 'Titular'}: ${userName}`, pageWidth - margin - 6, margin + 9, { align: 'right' });
-  doc.text(`${isEn ? 'Issued' : 'Emitido'}: ${formattedNow}`, pageWidth - margin - 6, margin + 14, { align: 'right' });
-  doc.text(`${isEn ? 'Currency' : 'Moeda'}: ${user.currency || 'BRL'}`, pageWidth - margin - 6, margin + 19, { align: 'right' });
+  doc.text(`${isEn ? 'Holder' : 'Titular'}: ${userName}`, rightX, margin + 8, { align: 'right' });
+
+  let metaY = margin + 13;
+  if (user.walletAddress) {
+    const rawAddr = String(user.walletAddress);
+    const shortAddr = rawAddr.length > 10 ? `${rawAddr.slice(0, 6)}...${rawAddr.slice(-4)}` : rawAddr;
+    doc.setTextColor(148, 163, 184);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.text(`Base: ${shortAddr}`, rightX, metaY, { align: 'right' });
+    metaY += 5;
+  }
+
+  doc.setTextColor(203, 213, 225);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.5);
+  doc.text(`${isEn ? 'Issued' : 'Emitido'}: ${formattedNow}`, rightX, metaY, { align: 'right' });
+  doc.text(`${isEn ? 'Currency' : 'Moeda'}: ${user.currency || 'BRL'}`, rightX, metaY + 5, { align: 'right' });
 
   // Period Badge
-  let y = margin + 32;
+  let y = margin + bannerHeight + 6;
   doc.setFillColor(238, 242, 255);
   doc.rect(margin, y, contentWidth, 10, 'F');
   doc.setDrawColor(0, 0, 0);
@@ -330,10 +454,11 @@ export const generateStatementPdf = (options: ExportDataOptions): { doc: jsPDF; 
       doc.setTextColor(71, 85, 105);
       doc.text(dStr, margin + 3, y + 4.8);
 
-      // Description (sanitize and truncate if too long)
+      // Description (sanitize and truncate if too long, with on-chain indicator)
       doc.setTextColor(15, 23, 42);
       const rawDesc = tx.description || (isEn ? 'No description' : 'Sem descrição');
-      const descText = sanitizeForPdf(rawDesc);
+      const onChainTag = tx.isOnChain ? ' [Base]' : '';
+      const descText = sanitizeForPdf(rawDesc + onChainTag);
       const truncatedDesc = descText.length > 45 ? descText.slice(0, 42) + '...' : descText;
       doc.text(truncatedDesc, margin + 32, y + 4.8);
 
@@ -343,8 +468,9 @@ export const generateStatementPdf = (options: ExportDataOptions): { doc: jsPDF; 
       const truncatedCat = catText.length > 20 ? catText.slice(0, 18) + '..' : catText;
       doc.text(truncatedCat, margin + 112, y + 4.8);
 
-      // Type
-      const typeLabel = tx.type === 'income' ? (isEn ? 'Income' : 'Entrada') : (isEn ? 'Expense' : 'Gasto');
+      // Type (with asterisk if on-chain)
+      const baseType = tx.type === 'income' ? (isEn ? 'Income' : 'Entrada') : (isEn ? 'Expense' : 'Gasto');
+      const typeLabel = tx.isOnChain ? `${baseType}*` : baseType;
       doc.text(typeLabel, margin + 152, y + 4.8);
 
       // Amount
@@ -363,25 +489,31 @@ export const generateStatementPdf = (options: ExportDataOptions): { doc: jsPDF; 
     });
   }
 
-  // Footer note on last page
-  const footerY = pageHeight - margin - 4;
-  doc.setDrawColor(0, 0, 0);
-  doc.setLineWidth(0.4);
-  doc.line(margin, footerY - 2, pageWidth - margin, footerY - 2);
+  // Dynamic multi-page footer stamping across all pages
+  const hasOnChainTx = filtered.some((tx) => tx.isOnChain);
+  const totalPages = doc.getNumberOfPages();
 
-  doc.setTextColor(148, 163, 184);
-  doc.setFontSize(7);
-  doc.setFont('helvetica', 'normal');
-  doc.text(
-    sanitizeForPdf(
+  for (let p = 1; p <= totalPages; p++) {
+    doc.setPage(p);
+    const footerY = pageHeight - margin - 4;
+    doc.setDrawColor(0, 0, 0);
+    doc.setLineWidth(0.4);
+    doc.line(margin, footerY - 2, pageWidth - margin, footerY - 2);
+
+    doc.setTextColor(148, 163, 184);
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+
+    const footerText = sanitizeForPdf(
       isEn
-        ? 'CofreAdmin - Statement & receipt issued locally on device'
-        : 'CofreAdmin - Comprovante e extrato emitido localmente no dispositivo'
-    ),
-    margin,
-    footerY + 2
-  );
-  doc.text(isEn ? 'Authentic' : 'Autêntico', pageWidth - margin, footerY + 2, { align: 'right' });
+        ? `CofreAdmin - Device-verified financial statement${hasOnChainTx ? ' • *On-chain via Base' : ''}`
+        : `CofreAdmin - Extrato verificado localmente no dispositivo${hasOnChainTx ? ' • *On-chain via Base' : ''}`
+    );
+    doc.text(footerText, margin, footerY + 2);
+
+    const pageNumText = isEn ? `Page ${p} of ${totalPages}` : `Página ${p} de ${totalPages}`;
+    doc.text(pageNumText, pageWidth - margin, footerY + 2, { align: 'right' });
+  }
 
   const blob = doc.output('blob');
 

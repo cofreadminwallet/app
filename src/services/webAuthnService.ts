@@ -33,11 +33,28 @@ function safeBase64UrlToUint8Array(b64url: string): Uint8Array | null {
   }
 }
 
-// Clear any legacy custom PIN hashes from localStorage to ensure strictly native device security
-if (typeof window !== 'undefined') {
-  try {
-    localStorage.removeItem('cofre_security_pin_hash');
-  } catch {}
+const PIN_HASH_KEY = 'cofre_security_pin_hash';
+const PIN_SALT_KEY = 'cofre_pin_salt';
+
+async function hashPin(pin: string, salt: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(`cofreadmin_pin_${salt}_${pin}`);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+function getOrCreatePinSalt(): string {
+  let salt = localStorage.getItem(PIN_SALT_KEY);
+  if (!salt) {
+    const randomBytes = new Uint8Array(16);
+    crypto.getRandomValues(randomBytes);
+    salt = Array.from(randomBytes)
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
+    localStorage.setItem(PIN_SALT_KEY, salt);
+  }
+  return salt;
 }
 
 export class WebAuthnService {
@@ -82,19 +99,64 @@ export class WebAuthnService {
   }
 
   /**
-   * Deprecated: Custom app PINs are disabled in favor of native device security (Biometrics / Phone Screen Lock)
+   * Checks whether a 4-digit security PIN is stored locally on this device
    */
   public static hasStoredPin(): boolean {
-    return false;
+    try {
+      return Boolean(localStorage.getItem(PIN_HASH_KEY));
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Saves a 4-digit security PIN hashed with SHA-256 and device salt
+   */
+  public static async saveSecurityPin(pin: string): Promise<boolean> {
+    try {
+      if (!pin || pin.length < 4) return false;
+      const salt = getOrCreatePinSalt();
+      const hash = await hashPin(pin, salt);
+      localStorage.setItem(PIN_HASH_KEY, hash);
+      this.setDeviceSecurityEnabled(true);
+      return true;
+    } catch (e) {
+      console.error('Failed to save security PIN:', e);
+      return false;
+    }
+  }
+
+  /**
+   * Verifies an entered 4-digit security PIN against the stored SHA-256 hash
+   */
+  public static async verifySecurityPin(pin: string): Promise<boolean> {
+    try {
+      const storedHash = localStorage.getItem(PIN_HASH_KEY);
+      if (!storedHash) return false;
+      const salt = getOrCreatePinSalt();
+      const computedHash = await hashPin(pin, salt);
+      const isValid = computedHash === storedHash;
+      if (isValid) {
+        this.setSessionUnlocked(true);
+      }
+      return isValid;
+    } catch (e) {
+      console.error('Failed to verify security PIN:', e);
+      return false;
+    }
   }
 
   public static getStoredPinHash(): string | null {
-    return null;
+    try {
+      return localStorage.getItem(PIN_HASH_KEY);
+    } catch {
+      return null;
+    }
   }
 
   public static removeStoredPin(): void {
     try {
-      localStorage.removeItem('cofre_security_pin_hash');
+      localStorage.removeItem(PIN_HASH_KEY);
     } catch {}
   }
 
@@ -264,7 +326,7 @@ export class WebAuthnService {
         authenticatorSelection: {
           authenticatorAttachment: 'platform',
           userVerification: 'required',
-          residentKey: 'preferred',
+          residentKey: 'discouraged',
           requireResidentKey: false,
         },
         timeout: 60000,
@@ -389,6 +451,7 @@ export class WebAuthnService {
             {
               id: rawId,
               type: 'public-key',
+              transports: ['internal'],
             },
           ];
         }

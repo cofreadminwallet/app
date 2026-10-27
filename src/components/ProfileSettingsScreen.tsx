@@ -120,19 +120,28 @@ export const ProfileSettingsScreen: React.FC<ProfileSettingsScreenProps> = React
   const [activeSection, setActiveSection] = useState<'profile' | 'categories' | 'security' | 'backup'>('profile');
   const [isLegalModalOpen, setIsLegalModalOpen] = useState(false);
   
-  // Unified Device Security (Biometrics / Phone Screen Lock)
+  // Unified Device Security (Biometrics / 4-digit PIN / Phone Screen Lock)
   const [isPlatformBiometricsAvailable, setIsPlatformBiometricsAvailable] = useState(true);
+  const [hasStoredPin, setHasStoredPin] = useState<boolean>(() => WebAuthnService.hasStoredPin());
   const [deviceSecurityActive, setDeviceSecurityActive] = useState<boolean>(() =>
     WebAuthnService.isDeviceSecurityEnabled(user.deviceSecurityEnabled ?? user.appLockEnabled)
   );
   const [isTestingBio, setIsTestingBio] = useState(false);
   const [bioFeedback, setBioFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  // 4-Digit Security PIN Modal State
+  const [isPinModalOpen, setIsPinModalOpen] = useState(false);
+  const [pinModalStep, setPinModalStep] = useState<'enter' | 'confirm'>('enter');
+  const [pinModalCandidate, setPinModalCandidate] = useState('');
+  const [pinModalInput, setPinModalInput] = useState('');
+  const [pinModalError, setPinModalError] = useState<string | null>(null);
+
   React.useEffect(() => {
     WebAuthnService.isPlatformAuthenticatorAvailable().then((avail) => {
       setIsPlatformBiometricsAvailable(avail);
     });
     setDeviceSecurityActive(WebAuthnService.isDeviceSecurityEnabled(user.deviceSecurityEnabled ?? user.appLockEnabled));
+    setHasStoredPin(WebAuthnService.hasStoredPin());
   }, [user.deviceSecurityEnabled, user.appLockEnabled]);
 
   // User edit state
@@ -507,60 +516,34 @@ export const ProfileSettingsScreen: React.FC<ProfileSettingsScreenProps> = React
   // Unified Device Security Handlers
   const handleToggleDeviceSecurity = async () => {
     if (!deviceSecurityActive) {
-      // Enable: requires device biometric/passcode validation
       triggerHaptic('light');
-      setIsTestingBio(true);
-      setBioFeedback(null);
 
-      try {
-        const res = await WebAuthnService.registerDevicePasskey(
-          user.email || 'usuario@cofreadmin.app',
-          user.name || (isEn ? 'CofreAdmin User' : 'Usuário CofreAdmin')
-        );
-
-        if (res.success) {
-          triggerHaptic('success');
-          setDeviceSecurityActive(true);
-          WebAuthnService.setDeviceSecurityEnabled(true);
-
-          onUpdateUser({
-            ...user,
-            deviceSecurityEnabled: true,
-            appLockEnabled: true,
-            requireAuthForPayments: true,
-            passkeyEnabled: true,
-          });
-
-          setBioFeedback({
-            type: 'success',
-            text: isEn
-              ? 'Lock enabled with device biometrics or PIN!'
-              : 'Bloqueio ativado com a biometria ou PIN do aparelho!',
-          });
-        } else if (res.cancelled) {
-          triggerHaptic('warning');
-          setBioFeedback({
-            type: 'error',
-            text: isEn ? 'Activation cancelled on device.' : 'Ativação cancelada no aparelho.',
-          });
-        } else {
-          triggerHaptic('warning');
-          setBioFeedback({
-            type: 'error',
-            text: res.message || (isEn ? 'Could not validate device.' : 'Não foi possível validar o aparelho.'),
-          });
-        }
-      } catch (err: any) {
-        setBioFeedback({
-          type: 'error',
-          text: isEn ? 'Error activating device security.' : 'Erro ao acionar a segurança do aparelho.',
-        });
-      } finally {
-        setIsTestingBio(false);
-        setTimeout(() => setBioFeedback(null), 4000);
+      // If user has not yet set a 4-digit PIN, prompt them to set one first
+      if (!WebAuthnService.hasStoredPin()) {
+        handleOpenPinModal();
+        return;
       }
+
+      setDeviceSecurityActive(true);
+      WebAuthnService.setDeviceSecurityEnabled(true);
+
+      onUpdateUser({
+        ...user,
+        deviceSecurityEnabled: true,
+        appLockEnabled: true,
+        requireAuthForPayments: true,
+      });
+
+      triggerHaptic('success');
+      setBioFeedback({
+        type: 'success',
+        text: isEn
+          ? 'App lock enabled with PIN & Biometrics!'
+          : 'Bloqueio ativado com PIN e Biometria!',
+      });
+      setTimeout(() => setBioFeedback(null), 3000);
     } else {
-      // Desativar
+      // Disable
       triggerHaptic('medium');
       setDeviceSecurityActive(false);
       WebAuthnService.setDeviceSecurityEnabled(false);
@@ -570,7 +553,6 @@ export const ProfileSettingsScreen: React.FC<ProfileSettingsScreenProps> = React
         deviceSecurityEnabled: false,
         appLockEnabled: false,
         requireAuthForPayments: false,
-        passkeyEnabled: false,
       });
 
       setBioFeedback({
@@ -579,6 +561,70 @@ export const ProfileSettingsScreen: React.FC<ProfileSettingsScreenProps> = React
       });
       setTimeout(() => setBioFeedback(null), 3000);
     }
+  };
+
+  const handleOpenPinModal = () => {
+    triggerHaptic('medium');
+    setPinModalStep('enter');
+    setPinModalCandidate('');
+    setPinModalInput('');
+    setPinModalError(null);
+    setIsPinModalOpen(true);
+  };
+
+  const handlePinModalDigit = (digit: string) => {
+    if (pinModalInput.length >= 4) return;
+    triggerHaptic('light');
+    setPinModalError(null);
+    const nextVal = pinModalInput + digit;
+    setPinModalInput(nextVal);
+
+    if (nextVal.length === 4) {
+      if (pinModalStep === 'enter') {
+        triggerHaptic('medium');
+        setPinModalCandidate(nextVal);
+        setPinModalStep('confirm');
+        setPinModalInput('');
+      } else if (pinModalStep === 'confirm') {
+        if (nextVal === pinModalCandidate) {
+          triggerHaptic('success');
+          WebAuthnService.saveSecurityPin(nextVal).then(() => {
+            setHasStoredPin(true);
+            setDeviceSecurityActive(true);
+            WebAuthnService.setDeviceSecurityEnabled(true);
+            onUpdateUser({
+              ...user,
+              deviceSecurityEnabled: true,
+              appLockEnabled: true,
+              requireAuthForPayments: true,
+            });
+            setIsPinModalOpen(false);
+            setBioFeedback({
+              type: 'success',
+              text: isEn
+                ? '4-digit PIN saved and lock enabled!'
+                : 'PIN de 4 dígitos salvo e bloqueio ativado!',
+            });
+            setTimeout(() => setBioFeedback(null), 3000);
+          });
+        } else {
+          triggerHaptic('warning');
+          setPinModalError(
+            isEn ? 'PINs do not match. Try again.' : 'Os PINs não coincidem. Tente novamente.'
+          );
+          setPinModalInput('');
+          setPinModalStep('enter');
+          setPinModalCandidate('');
+        }
+      }
+    }
+  };
+
+  const handlePinModalBackspace = () => {
+    if (pinModalInput.length === 0) return;
+    triggerHaptic('light');
+    setPinModalInput((prev) => prev.slice(0, -1));
+    setPinModalError(null);
   };
 
   const handleTestDeviceSecurity = async () => {
@@ -1680,6 +1726,44 @@ export const ProfileSettingsScreen: React.FC<ProfileSettingsScreenProps> = React
               </div>
             )}
 
+            {/* 4-Digit PIN Configuration Row */}
+            <div className="p-3 bg-[#F8FAFC] border-2 border-black/15 rounded-xl flex items-center justify-between gap-2.5">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-white border border-black/20 flex items-center justify-center flex-shrink-0">
+                  <Key className="w-4 h-4 text-neutral-700" />
+                </div>
+                <div className="min-w-0">
+                  <span className="font-['Outfit'] font-black text-xs text-black block truncate">
+                    {isEn ? '4-Digit PIN' : 'PIN de 4 Dígitos'}
+                  </span>
+                  <span className="text-[10px] text-neutral-500 font-medium block">
+                    {hasStoredPin
+                      ? isEn
+                        ? 'Configured & active ✓'
+                        : 'Configurado e ativo ✓'
+                      : isEn
+                      ? 'No PIN set'
+                      : 'Nenhum PIN definido'}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleOpenPinModal}
+                className="py-1.5 px-2.5 bg-white hover:bg-neutral-100 text-black border-2 border-black rounded-lg font-['Outfit'] font-black text-[11px] shadow-neo-xs btn-press cursor-pointer flex-shrink-0"
+                id="btn-settings-configure-pin"
+              >
+                {hasStoredPin
+                  ? isEn
+                    ? 'Change PIN'
+                    : 'Alterar PIN'
+                  : isEn
+                  ? 'Set PIN'
+                  : 'Criar PIN'}
+              </button>
+            </div>
+
             {/* Direct interactive actions */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
               <button
@@ -2235,6 +2319,106 @@ export const ProfileSettingsScreen: React.FC<ProfileSettingsScreenProps> = React
           });
         }}
       />
+
+      {/* 4-Digit Security PIN Setup Modal (Trust Wallet Style) */}
+      {isPinModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in">
+          <div className="relative w-full max-w-xs bg-white border-3 border-black rounded-[24px] shadow-neo-xl p-5 z-10 flex flex-col items-center text-center">
+            {/* Header */}
+            <div className="w-full flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-[#EDE9FE] border-2 border-black flex items-center justify-center shadow-neo-xs">
+                  <Key className="w-4 h-4 text-purple-700" />
+                </div>
+                <h4 className="font-['Outfit'] font-black text-sm text-black">
+                  {isEn ? 'Security PIN' : 'PIN de Segurança'}
+                </h4>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHaptic('light');
+                  setIsPinModalOpen(false);
+                }}
+                className="w-7 h-7 rounded-lg border border-black/20 hover:border-black bg-white hover:bg-neutral-100 flex items-center justify-center text-neutral-600 transition-colors cursor-pointer"
+                title={isEn ? 'Cancel' : 'Cancelar'}
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Instruction */}
+            <p className="text-xs text-neutral-600 font-bold mb-4">
+              {pinModalStep === 'enter'
+                ? isEn
+                  ? 'Choose a 4-digit PIN to lock your app'
+                  : 'Crie seu PIN de 4 dígitos'
+                : isEn
+                ? 'Confirm your 4-digit PIN'
+                : 'Confirme seu PIN de 4 dígitos'}
+            </p>
+
+            {/* 4 Visual Indicator Dots */}
+            <div className="flex items-center justify-center gap-4 mb-4" id="modal-pin-dots">
+              {[0, 1, 2, 3].map((idx) => {
+                const isFilled = pinModalInput.length > idx;
+                return (
+                  <div
+                    key={idx}
+                    className={`w-4 h-4 rounded-full border-2 border-black transition-all duration-150 ${
+                      isFilled
+                        ? 'bg-[#0052FF] scale-125 shadow-neo-xs'
+                        : 'bg-white scale-100'
+                    }`}
+                  />
+                );
+              })}
+            </div>
+
+            {/* Error message */}
+            {pinModalError && (
+              <div className="w-full mb-3 p-2 bg-rose-50 border-2 border-black rounded-xl text-xs font-bold text-rose-950 flex items-center gap-1.5 shadow-neo-xs animate-in fade-in text-left">
+                <AlertCircle className="w-3.5 h-3.5 text-rose-600 flex-shrink-0" />
+                <span className="text-[11px] leading-tight">{pinModalError}</span>
+              </div>
+            )}
+
+            {/* Tactile Keypad */}
+            <div className="w-full grid grid-cols-3 gap-2 max-w-[240px] mx-auto mb-2">
+              {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((digit) => (
+                <button
+                  key={digit}
+                  type="button"
+                  onClick={() => handlePinModalDigit(digit)}
+                  className="h-12 rounded-xl bg-white hover:bg-neutral-100 active:bg-neutral-200 border-2 border-black font-['Outfit'] font-black text-xl text-black shadow-neo-xs btn-press flex items-center justify-center cursor-pointer transition-transform"
+                >
+                  {digit}
+                </button>
+              ))}
+
+              <div className="h-12" />
+
+              <button
+                type="button"
+                onClick={() => handlePinModalDigit('0')}
+                className="h-12 rounded-xl bg-white hover:bg-neutral-100 active:bg-neutral-200 border-2 border-black font-['Outfit'] font-black text-xl text-black shadow-neo-xs btn-press flex items-center justify-center cursor-pointer transition-transform"
+              >
+                0
+              </button>
+
+              <button
+                type="button"
+                onClick={handlePinModalBackspace}
+                className="h-12 rounded-xl bg-white hover:bg-neutral-100 active:bg-neutral-200 border-2 border-black font-['Outfit'] font-black text-black shadow-neo-xs btn-press flex items-center justify-center cursor-pointer transition-transform"
+                title={isEn ? 'Backspace' : 'Apagar'}
+              >
+                <X className="w-5 h-5 text-neutral-800" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Terms of Use & Privacy Policy Modal */}
       <LegalTermsModal
