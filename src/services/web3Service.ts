@@ -320,8 +320,28 @@ export class Web3Service {
         if (encryptedMnemonic) {
           localStorage.setItem(`cofreadmin_mnem_${idKey}`, encryptedMnemonic);
         }
+
+        // Synchronously update any stored user profile in localStorage so initial boot never reads an outdated address
+        const scopedUserKey = `cofreadmin_user_${idKey}`;
+        const rawScoped = localStorage.getItem(scopedUserKey);
+        if (rawScoped) {
+          try {
+            const parsed = JSON.parse(rawScoped);
+            parsed.walletAddress = account.address;
+            localStorage.setItem(scopedUserKey, JSON.stringify(parsed));
+          } catch {}
+        }
       } catch {}
     }
+
+    try {
+      const rawGlobalUser = localStorage.getItem('cofreadmin_user');
+      if (rawGlobalUser) {
+        const parsed = JSON.parse(rawGlobalUser);
+        parsed.walletAddress = account.address;
+        localStorage.setItem('cofreadmin_user', JSON.stringify(parsed));
+      }
+    } catch {}
 
     return account.address;
   }

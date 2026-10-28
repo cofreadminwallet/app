@@ -267,6 +267,25 @@ export class LocalStorageDatabaseService {
         user.avatarUrl = customAvatar;
       }
 
+      // Authoritative address synchronization on boot:
+      // If a dedicated active address is present in cofreadmin_addr_*, guarantee that user.walletAddress
+      // reflects it immediately without waiting for asynchronous background cloud/wallet resolution.
+      const candidateKeys = [
+        activeProfile,
+        activeProfile.replace(/^(google_|discord_)/, ''),
+        user.email ? getProfileStorageKey(user.email) : null,
+        user.authId ? getProfileStorageKey(user.authId) : null,
+        user.id ? getProfileStorageKey(user.id) : null,
+      ].filter(Boolean) as string[];
+
+      for (const k of candidateKeys) {
+        const storedAddr = localStorage.getItem(`cofreadmin_addr_${k}`);
+        if (storedAddr && /^0x[a-fA-F0-9]{40}$/.test(storedAddr.trim())) {
+          user.walletAddress = storedAddr.trim();
+          break;
+        }
+      }
+
       if (activeProfile === 'anonymous' && (user.authId || user.email || user.id)) {
         const derivedKey = user.authId || user.email || user.id;
         this.setActiveProfileKey(derivedKey);
@@ -300,6 +319,19 @@ export class LocalStorageDatabaseService {
             sanitizedUser.avatarUrl = existingCustom;
           }
         }
+
+        // Keep cofreadmin_addr_* sister storage keys synchronized with active address
+        if (sanitizedUser.walletAddress && /^0x[a-fA-F0-9]{40}$/.test(sanitizedUser.walletAddress.trim())) {
+          const keysToSync = new Set<string>();
+          if (targetKey) keysToSync.add(getProfileStorageKey(targetKey));
+          if (user.email) keysToSync.add(getProfileStorageKey(user.email));
+          if (user.authId) keysToSync.add(getProfileStorageKey(user.authId));
+          if (user.id) keysToSync.add(getProfileStorageKey(user.id));
+          for (const k of keysToSync) {
+            localStorage.setItem(`cofreadmin_addr_${k}`, sanitizedUser.walletAddress.trim());
+          }
+        }
+
         const serialized = JSON.stringify(sanitizedUser);
         localStorage.setItem(this.getScopedKey(STORAGE_KEYS.USER, targetKey), serialized);
         localStorage.setItem(STORAGE_KEYS.USER, serialized);
@@ -727,7 +759,10 @@ export class LocalStorageDatabaseService {
 
   clearAllHardSync(): void {
     if (typeof window === 'undefined') return;
-    localStorage.clear();
+    try {
+      localStorage.clear();
+      sessionStorage.clear();
+    } catch {}
   }
 
   async clearAllHard(): Promise<void> {

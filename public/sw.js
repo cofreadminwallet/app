@@ -1,6 +1,6 @@
 // CofreAdmin - Service Worker (Google PWA & Push Notification Guard)
 // Network-only pass-through for HTML/JS/CSS to prevent stale bundle trapping.
-const CACHE_NAME = 'cofreadmin-cache-v26';
+const CACHE_NAME = 'cofreadmin-cache-v27';
 
 // Install Event: Take over immediately and clear any legacy caches
 self.addEventListener('install', (event) => {

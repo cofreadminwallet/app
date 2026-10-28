@@ -439,6 +439,10 @@ export class I18nService {
     
     // Dynamically update <html lang="..."> attribute for screen readers, browsers and PWAs
     document.documentElement.lang = isEn ? 'en' : 'pt-BR';
+    document.documentElement.setAttribute('translate', 'no');
+    if (!document.documentElement.classList.contains('notranslate')) {
+      document.documentElement.classList.add('notranslate');
+    }
 
     // Dynamically update document title
     document.title = isEn 

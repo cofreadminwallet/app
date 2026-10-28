@@ -1784,9 +1784,9 @@ export default function App() {
   }) => {
     triggerHaptic('heavy');
     try {
-      const emailToDelete = user.email?.trim();
-      if (emailToDelete) {
-        await db.deleteFromCloud(emailToDelete, user, deletionConsent);
+      const identifierToDelete = (user.email || user.authId || user.id || '').trim();
+      if (identifierToDelete) {
+        await db.deleteFromCloud(identifierToDelete, user, deletionConsent);
       }
 
       // Sign out Firebase Auth and native Google session

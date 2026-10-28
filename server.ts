@@ -1551,7 +1551,7 @@ app.get(['/healthz', '/_health'], (_req, res) => {
   res.status(200).send('OK');
 });
 
-// Explicit Service Worker Route with correct MIME type and headers
+// Explicit Service Worker Route with strict zero-cache headers to prevent mobile browsers from locking stale SW
 app.get('/sw.js', (_req, res) => {
   const publicSw = path.join(process.cwd(), 'public', 'sw.js');
   const distSw = path.join(process.cwd(), 'dist', 'sw.js');
@@ -1560,10 +1560,29 @@ app.get('/sw.js', (_req, res) => {
   if (swPath) {
     res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
     res.setHeader('Service-Worker-Allowed', '/');
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
     res.sendFile(swPath);
   } else {
     res.status(404).send('Service worker not found');
+  }
+});
+
+// Explicit Manifest Route with strict zero-cache headers
+app.get('/manifest.json', (_req, res) => {
+  const publicManifest = path.join(process.cwd(), 'public', 'manifest.json');
+  const distManifest = path.join(process.cwd(), 'dist', 'manifest.json');
+  const localManifest = path.join(getRuntimeDir(), 'manifest.json');
+  const manifestPath = fs.existsSync(publicManifest) ? publicManifest : (fs.existsSync(distManifest) ? distManifest : (fs.existsSync(localManifest) ? localManifest : null));
+  if (manifestPath) {
+    res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.sendFile(manifestPath);
+  } else {
+    res.status(404).send('Manifest not found');
   }
 });
 
@@ -1661,9 +1680,18 @@ async function startServer() {
       fallthrough: false, // Return 404 if file does not exist in /assets, do NOT fall through to index.html
     }));
 
-    // Serve other root static files (manifest, sw.js, icons, etc)
+    // Serve other root static files with selective cache control:
+    // HTML, sw.js, and manifest.json must NEVER be cached by browser/proxy
     app.use(express.static(distPath, {
-      maxAge: '1h',
+      setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.html') || filePath.endsWith('sw.js') || filePath.endsWith('manifest.json')) {
+          res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+          res.setHeader('Pragma', 'no-cache');
+          res.setHeader('Expires', '0');
+        } else {
+          res.setHeader('Cache-Control', 'public, max-age=3600');
+        }
+      },
     }));
 
     // Return 404 JSON for non-existent API routes so they don't fall through to index.html

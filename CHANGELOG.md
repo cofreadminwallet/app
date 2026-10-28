@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.0.5] - 2026-10-28
 
 ### Added
 - Implemented instantaneous Trust Wallet-style on-screen numeric keypad with 4-digit PIN verification and interactive visual indicator dots in `AppLockScreen`.
@@ -15,8 +15,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Embedded official CofreAdmin vault icon into PDF statement exports with resilient vector fallback for offline reliability.
 - Added titular Web3 Base wallet display and discreet on-chain activity indicators (`[Base]`) in exported financial statements.
 - Added dynamic bilingual multi-page numbering (`Page X of Y` / `Página X de Y`) across all exported statement pages.
+- Added zero-cache headers (`no-store, no-cache, must-revalidate, max-age=0`) for `/sw.js` and `/manifest.json` in `server.ts` to ensure instant client version propagation.
+- Added mobile PWA foreground visibility listener (`visibilitychange` / `focus`) in `src/services/cacheManager.ts` to trigger automatic Service Worker byte checks upon app resume.
+- Added reload-loop throttling guard in `src/services/appUpdateService.ts`.
 
 ### Changed
+- Bumped Service Worker cache namespace to `cofreadmin-cache-v27` with aggressive cleanup of stale cache stores on activation.
 - Streamlined device security unlocking: suppressed Google Password Manager account selector sheet by configuring `residentKey: 'discouraged'` and platform-only transports (`['internal']`), enabling instant biometrics or PIN verification with zero delay.
 - Streamlined PDF statement header banner: replaced redundant standalone `COFREADMIN` title text with official document titles (`FINANCIAL STATEMENT` / `EXTRATO FINANCEIRO`), clear subtitle descriptors, and brand slogans.
 - Refactored payment and transfer feedback in `CryptoSendModal` to distinguish between business warnings and system errors. Insufficient balance notifications now render as amber warnings without error reporting buttons.
@@ -24,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Fixed unlock latency and repetitive passkey credential selector popups on locked app launch.
+- Fixed unwanted Android Chrome / Google Translate bottom sheet bar popping up on mobile PWA launch by adding `notranslate` attributes and meta tags while keeping automatic locale/language detection 100% active.
 - Fixed localization inconsistency where insufficient balance alerts appeared in Portuguese even when the active application language was set to English (`en-US`).
 - Fixed vault allocation validation toasts in `App.tsx` to dynamically respect the user's selected language.
 
