@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.5-b] - 2026-10-29
+
+### Added
+- Added direct navigation link to `CHANGELOG.md` in the project header documentation.
+- Documented multi-jurisdictional compliance across Brazil (LGPD), European Union (GDPR), and United States (CCPA/CPRA) for immutable audit and account erasure certificates.
+
+### Changed
+- Streamlined `LegalTermsModal` simplified summary into a rapid-read format, removing regional law acronyms from the quick overview and delegating statutory articles to full documentation.
+- Upgraded Contact card action icons in `ProfileSettingsScreen`:
+  - Feedback: updated to `MessageSquareHeart` for welcoming community suggestions.
+  - Support: updated to `LifeBuoy` (helpdesk standard), replacing the alarmist `AlertCircle`.
+  - About: updated to official `Github` open-source repository symbol.
+- Refined mobile keypad ergonomics in `AppLockScreen` (`gap-2 sm:gap-3`, `h-13 sm:h-16`) and contact button row (`w-9 h-9 sm:w-10 sm:h-10`) for narrow screens (<360px).
+
+### Fixed
+- Fixed HTML parsing issues in Markdown readers by standardizing clean Markdown headings.
+
 ## [1.0.5] - 2026-10-28
 
 ### Added

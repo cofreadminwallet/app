@@ -2,7 +2,7 @@
 
 > **Self-Custodial Web3 Personal Finance** <br>
 > USDC Vault Manager on Base Network <br>
-> Version: **v1.0.5** • Docs: **[Resources & Documentation](https://github.com/cofreadminwallet/app/tree/main/docs)**; **[Changelog](./CHANGELOG.md)** <br>
+> Version: **v1.0.5-b** • Docs: **[Resources & Documentation](https://github.com/cofreadminwallet/app/tree/main/docs)**; **[Changelog](./CHANGELOG.md)** <br>
 > Licensed under the **GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later)**.
 
 ---
