@@ -1,6 +1,6 @@
 # TERMOS DE USO, POLÍTICA DE PRIVACIDADE E AVISO LEGAL (DISCLAIMER)
 
-**Aplicativo:** CofreAdmin Wallet (Gerenciador Financeiro Web3 Self-Custodial)
+**Aplicativo:** CofreAdmin Wallet (Gerenciador Financeiro Web3 Self-Custodial) <br>
 *Ao utilizar nosso aplicativo, você concorda integralmente com as condições, políticas e isenções de responsabilidade descritas neste documento unificado. Se não concordar com qualquer termo aqui estabelecido, não deverá utilizar o aplicativo.*
 
 ---
