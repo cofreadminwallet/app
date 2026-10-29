@@ -1,8 +1,8 @@
-# CofreAdmin 🔐
+# CofreAdmin Wallet 🔐💰
 
 > **Self-Custodial Web3 Personal Finance** <br>
 > USDC Vault Manager on Base Network <br>
-> Version: **v1.0.5** • Docs: **[Resources & Documentation](https://github.com/cofreadminwallet/app/tree/main/docs)** <br>
+> Version: **v1.0.5** • Docs: **[Resources & Documentation](https://github.com/cofreadminwallet/app/tree/main/docs)**; **[Changelog](./CHANGELOG.md)** <br>
 > Licensed under the **GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later)**.
 
 ---
@@ -178,7 +178,7 @@ If you wish to update hardcoded default fallbacks directly in source files:
 - **Support Email & Diagnostic Mailer:** [`src/utils/supportEmail.ts`](./src/utils/supportEmail.ts) (variable `SUPPORT_EMAIL`)
 - **Feedback Link:** [`src/components/ProfileSettingsScreen.tsx`](./src/components/ProfileSettingsScreen.tsx)
 - **Legal Terms & Documentation Link:** [`src/components/LegalTermsModal.tsx`](./src/components/LegalTermsModal.tsx)
-- **Immutable Legal Audit & LGPD Erasure Certificates:** [`src/services/firebaseDb.ts`](./src/services/firebaseDb.ts) (`logWalletBackupAcknowledgment`, `deleteFromCloud`) and [`firestore.rules`](./firestore.rules)
+- **Immutable Legal Audit & Global Privacy Erasure Certificates (Brazil LGPD, EU GDPR, US CCPA/CPRA):** [`src/services/firebaseDb.ts`](./src/services/firebaseDb.ts) (`logWalletBackupAcknowledgment`, `deleteFromCloud`) and [`firestore.rules`](./firestore.rules)
 - **App Version & Automatic Build Sync:** [`src/config/version.ts`](./src/config/version.ts) (`APP_VERSION` and `APP_VERSION_LABEL`, automatically synchronized into `package.json`, `package-lock.json`, and `/api/version` via [`scripts/patch-firebase.cjs`](./scripts/patch-firebase.cjs))
 - **Versioned Cryptographic Vault (`v2` PBKDF2 / `v3` IndexedDB Non-Extractable `CryptoKey`):** [`src/utils/cryptoVault.ts`](./src/utils/cryptoVault.ts) (`CURRENT_VAULT_ENVELOPE_VERSION`, `needsVaultEnvelopeUpgrade`)
 - **Native USDC Contracts, BIP-39 Wallet Engine, Public Base RPCs & Future Generation Rotation:** [`src/services/web3Service.ts`](./src/services/web3Service.ts) (`BASE_USDC_MAINNET`, `BASE_PUBLIC_RPC`, `CURRENT_WALLET_GENERATION`, `generateMnemonicWallet`, `stageWalletForMigration`, `getPendingMigrationWallet`)
@@ -238,7 +238,10 @@ Because CofreAdmin compiles into a standard standalone Node.js / Express bundle 
 - **Strict Cloud & Storage Sanitization (`localStorageDb.ts` & `firebaseDb.ts`):** Both `LocalStorageDatabaseService.saveUser` and `FirebaseDatabaseService.saveToCloud` (via `HybridDatabaseService`) explicitly strip `walletPrivateKey`, `walletMnemonic`, and `securityPinHash` prior to serialization—sensitive key material never touches plain JSON user objects or Firestore.
 - **Immutable Legal & Self-Custody Audit Trail (`firebaseDb.ts` & `firestore.rules`):**
   - **Backup Acknowledgment Certificates (`WALLET_BACKUP_ACKNOWLEDGMENT`):** Whenever a user confirms having backed up their 12-word recovery phrase / private key (`WalletBackupModal.tsx` → `db.logWalletBackupAcknowledgment`), an immutable digital certificate (`ack_...`) is recorded with timestamps, SHA-256 hashed identifier, public wallet address, audit fingerprint, and explicit non-custodial liability acknowledgment (**never** storing the private key or seed phrase).
-  - **Clickwrap Terms & LGPD/GDPR Erasure Certificates (`deleteFromCloud`):** First-access Privacy Policy acceptance (`clickwrap_v2_...`) is tracked on registration, and voluntary account deletion (`db.deleteFromCloud`) permanently erases active operational data while archiving an immutable erasure and self-custody audit log in compliance with **LGPD Art. 16, I, II & VI (Law No. 13.709/2018)**.
+  - **Clickwrap Terms & Multi-Jurisdictional Privacy Erasure Certificates (`deleteFromCloud`):** First-access Privacy Policy acceptance (`clickwrap_v2_...`) is recorded upon registration, and voluntary account deletion (`db.deleteFromCloud`) permanently purges active operational documents while archiving a pseudonymized, write-once erasure and self-custody audit log in full compliance with global legal retention and data erasure mandates:
+    - 🇧🇷 **Brazil — LGPD (*Lei Geral de Proteção de Dados*, Law No. 13.709/2018):** Enforces Art. 16, I, II & VI (immediate elimination of operational personal data with legitimate archive of immutable compliance records for legal obligations).
+    - 🇪🇺 **European Union — GDPR (*General Data Protection Regulation*, Regulation (EU) 2016/679):** Guarantees the "Right to Erasure" (*Right to be Forgotten*) under Art. 17(1), harmonized with Art. 17(3)(b) & (e) (permissible retention of tamper-evident digital records solely for legal obligation compliance and defense of legal claims).
+    - 🇺🇸 **United States — CCPA / CPRA (*California Consumer Privacy Act / California Privacy Rights Act*, Cal. Civ. Code § 1798.100+ & § 1798.105):** Fulfills consumer right-to-delete requests while strictly retaining immutable audit evidence required to complete transactions, fulfill security and evidentiary audits, and comply with state/federal legal obligations under Cal. Civ. Code § 1798.105(d).
   - **Write-Once Audit Rules & Dual-State Tenant Isolation:** Enforced at the database level via `firestore.rules` (`allow update, delete: if false;` on legal audit collections), guaranteeing tamper-proof evidentiary integrity, while user data collections enforce verified-email ownership across both existing (`resource.data`) and incoming (`request.resource.data`) states to prevent cross-tenant IDOR overwrites.
 - **Client-Side Allowlist, Input Validation & Fee Guard:** Outgoing meta-transactions (EIP-3009 `TransferWithAuthorization`) validate recipient checksums (`isAddress`, non-zero burn guard), positive finite amounts, total balance coverage (`amount + protocolFee + gasFee <= usdcBalance`), and verify the Relayer and fee recipient against an immutable client-side allowlist (capping gas fees at `$0.10 USDC` and protocol fees at `max(0.2%, $0.05 USDC)` prior to signing).
 - **Cryptographic EIP-3009 Nonces:** All transaction authorization nonces are generated with `crypto.getRandomValues(32)` to eliminate predictable nonce collision attacks.

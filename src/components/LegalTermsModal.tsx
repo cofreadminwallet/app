@@ -54,7 +54,7 @@ export const LegalTermsModal: React.FC<LegalTermsModalProps> = ({
                 {isEn ? 'Privacy Policy' : 'Política de Privacidade'}
               </h3>
               <p className="text-[10px] sm:text-xs font-bold text-neutral-500">
-                {isEn ? 'Simplified summary • Self-custody & Privacy' : 'Resumo simplificado • Auto-custódia & LGPD'}
+                {isEn ? 'Simplified summary' : 'Resumo simplificado'}
               </p>
             </div>
           </div>
@@ -78,21 +78,21 @@ export const LegalTermsModal: React.FC<LegalTermsModalProps> = ({
             </span>
             <p className="text-[11px] text-amber-950 leading-relaxed font-medium">
               {isEn
-                ? <>You have full and exclusive control of your funds. Your private key stays encrypted on your device only — CofreAdmin <strong>never holds custody</strong> and <strong>has no access</strong> to your key. Backup is your responsibility, as blockchain transactions are irreversible.</>
-                : <>Você tem controle total e exclusivo dos seus fundos. Sua chave privada fica gravada apenas no seu dispositivo — o CofreAdmin <strong>não possui custódia</strong> e <strong>não tem acesso</strong> à sua chave. O backup é sua responsabilidade, já que operações em blockchain são irreversíveis.</>}
+                ? <>Your private key stays on your device only. CofreAdmin <strong>never holds custody</strong> and <strong>has no access</strong> to your funds. Backup is your responsibility.</>
+                : <>Sua chave privada fica gravada apenas no seu dispositivo. O CofreAdmin <strong>não possui custódia</strong> e <strong>não tem acesso</strong> aos seus fundos. O backup é sua responsabilidade.</>}
             </p>
           </div>
 
-          {/* Card 2: Privacy & Data Protection (LGPD/GDPR) */}
+          {/* Card 2: Privacy & Data Protection */}
           <div className="bg-[#ECFDF5] border-2 border-black rounded-2xl p-3.5 space-y-1.5 shadow-neo-xs">
             <span className="font-['Outfit'] font-black text-xs text-emerald-950 flex items-center gap-1.5">
               <Lock className="w-4 h-4 text-emerald-800 flex-shrink-0" />
-              <span>{isEn ? 'Privacy & Data Protection' : 'Privacidade & Seus Dados (LGPD)'}</span>
+              <span>{isEn ? 'Privacy & Data Protection' : 'Privacidade & Seus Dados'}</span>
             </span>
             <p className="text-[11px] text-emerald-950 leading-relaxed font-medium">
               {isEn
-                ? <>Your financial entries and information belong strictly to you. We never sell data to third parties and you can request <strong>permanent deletion of all your data</strong> at any time in settings.</>
-                : <>Seus lançamentos e informações financeiras são seus. Não comercializamos dados com terceiros e você pode solicitar a <strong>exclusão definitiva de todos os dados</strong> a qualquer momento nas configurações.</>}
+                ? <>Your financial entries belong strictly to you and are never sold. You can request <strong>permanent deletion of your data</strong> at any time in settings.</>
+                : <>Seus lançamentos financeiros pertencem unicamente a você e nunca são vendidos. Você pode solicitar a <strong>exclusão definitiva de todos os dados</strong> a qualquer momento nas configurações.</>}
             </p>
           </div>
 
@@ -104,8 +104,8 @@ export const LegalTermsModal: React.FC<LegalTermsModalProps> = ({
             </span>
             <p className="text-[11px] text-purple-950 leading-relaxed font-medium">
               {isEn
-                ? 'CofreAdmin is a personal financial tracking and budgeting support tool, with total user autonomy over all decisions and transfers.'
-                : 'O CofreAdmin é um aplicativo de apoio para organização financeira pessoal e metas, com total autonomia do usuário sobre suas decisões e transferências.'}
+                ? 'Personal finance organization app. You have full autonomy over all your goals and transfers.'
+                : 'Aplicativo de organização financeira pessoal. Você possui autonomia total sobre suas metas e transferências.'}
             </p>
           </div>
 

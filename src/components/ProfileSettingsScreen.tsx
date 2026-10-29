@@ -26,12 +26,15 @@ import {
   Camera,
   Upload,
   MessageSquare,
+  MessageSquareHeart,
   Bell,
   BellRing,
   BellOff,
   ShieldCheck,
   Loader2,
   Info,
+  LifeBuoy,
+  Github,
 } from 'lucide-react';
 import { NotificationService } from '../services/notificationService';
 import { APP_VERSION, APP_VERSION_LABEL } from '../config/version';
@@ -1972,14 +1975,14 @@ export const ProfileSettingsScreen: React.FC<ProfileSettingsScreenProps> = React
             </span>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <button
               type="button"
               onClick={() => {
                 triggerHaptic('light');
                 setIsLegalModalOpen(true);
               }}
-              className="w-10 h-10 rounded-xl border-2 border-black bg-[#F8FAFC] hover:bg-[#DCFCE7] text-emerald-700 flex items-center justify-center shadow-neo-xs btn-press transition-colors cursor-pointer"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl border-2 border-black bg-[#F8FAFC] hover:bg-[#DCFCE7] text-emerald-700 flex items-center justify-center shadow-neo-xs btn-press transition-colors cursor-pointer"
               title={isEn ? 'Privacy' : 'Privacidade'}
               aria-label={isEn ? 'Privacy' : 'Privacidade'}
               id="btn-settings-privacy-policy"
@@ -1992,12 +1995,12 @@ export const ProfileSettingsScreen: React.FC<ProfileSettingsScreenProps> = React
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => triggerHaptic('light')}
-              className="w-10 h-10 rounded-xl border-2 border-black bg-[#F8FAFC] hover:bg-[#EDE9FE] text-purple-600 flex items-center justify-center shadow-neo-xs btn-press transition-colors cursor-pointer"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl border-2 border-black bg-[#F8FAFC] hover:bg-[#EDE9FE] text-purple-600 flex items-center justify-center shadow-neo-xs btn-press transition-colors cursor-pointer"
               title={isEn ? 'Feedback' : 'Feedback'}
               aria-label={isEn ? 'Feedback' : 'Feedback'}
               id="btn-settings-feedback-form"
             >
-              <MessageSquare className="w-4 h-4 text-purple-600 shrink-0" />
+              <MessageSquareHeart className="w-4 h-4 text-purple-600 shrink-0" />
             </a>
 
             <button
@@ -2012,12 +2015,12 @@ export const ProfileSettingsScreen: React.FC<ProfileSettingsScreenProps> = React
                   language,
                 });
               }}
-              className="w-10 h-10 rounded-xl border-2 border-black bg-[#F8FAFC] hover:bg-rose-50 text-rose-500 flex items-center justify-center shadow-neo-xs btn-press transition-colors cursor-pointer"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl border-2 border-black bg-[#F8FAFC] hover:bg-rose-50 text-rose-500 flex items-center justify-center shadow-neo-xs btn-press transition-colors cursor-pointer"
               title={isEn ? 'Support' : 'Suporte'}
               aria-label={isEn ? 'Support' : 'Suporte'}
               id="btn-settings-report-problem"
             >
-              <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
+              <LifeBuoy className="w-4 h-4 text-rose-500 shrink-0" />
             </button>
 
             <a
@@ -2025,12 +2028,12 @@ export const ProfileSettingsScreen: React.FC<ProfileSettingsScreenProps> = React
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => triggerHaptic('light')}
-              className="w-10 h-10 rounded-xl border-2 border-black bg-[#F8FAFC] hover:bg-sky-50 text-sky-600 flex items-center justify-center shadow-neo-xs btn-press transition-colors cursor-pointer"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl border-2 border-black bg-[#F8FAFC] hover:bg-sky-50 text-sky-600 flex items-center justify-center shadow-neo-xs btn-press transition-colors cursor-pointer"
               title={isEn ? 'About' : 'Sobre'}
               aria-label={isEn ? 'About' : 'Sobre'}
               id="btn-settings-about-github"
             >
-              <Info className="w-4 h-4 text-sky-600 shrink-0" />
+              <Github className="w-4 h-4 text-sky-600 shrink-0" />
             </a>
           </div>
         </div>

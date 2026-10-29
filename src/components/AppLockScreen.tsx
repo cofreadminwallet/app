@@ -338,13 +338,13 @@ export const AppLockScreen: React.FC<AppLockScreenProps> = ({
         )}
 
         {/* Trust Wallet-Style Tactile Numeric Keypad */}
-        <div className="w-full grid grid-cols-3 gap-2.5 sm:gap-3 max-w-[280px] sm:max-w-[300px] mx-auto mb-3">
+        <div className="w-full grid grid-cols-3 gap-2 sm:gap-3 max-w-[270px] sm:max-w-[300px] mx-auto mb-3">
           {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((digit) => (
             <button
               key={digit}
               type="button"
               onClick={() => handleDigitPress(digit)}
-              className="h-14 sm:h-16 rounded-2xl bg-white hover:bg-neutral-100 active:bg-neutral-200 border-2 border-black font-['Outfit'] font-black text-2xl text-black shadow-neo-xs btn-press flex items-center justify-center cursor-pointer transition-transform"
+              className="h-13 sm:h-16 rounded-2xl bg-white hover:bg-neutral-100 active:bg-neutral-200 border-2 border-black font-['Outfit'] font-black text-xl sm:text-2xl text-black shadow-neo-xs btn-press flex items-center justify-center cursor-pointer transition-transform"
               id={`btn-keypad-${digit}`}
             >
               {digit}
@@ -356,7 +356,7 @@ export const AppLockScreen: React.FC<AppLockScreenProps> = ({
             type="button"
             onClick={handleDeviceUnlock}
             disabled={isAuthenticatingBio}
-            className={`h-14 sm:h-16 rounded-2xl border-2 border-black font-['Outfit'] font-black text-sm shadow-neo-xs btn-press flex items-center justify-center cursor-pointer transition-all ${
+            className={`h-13 sm:h-16 rounded-2xl border-2 border-black font-['Outfit'] font-black text-sm shadow-neo-xs btn-press flex items-center justify-center cursor-pointer transition-all ${
               isAuthenticatingBio
                 ? 'bg-[#B8F256] text-black animate-pulse'
                 : 'bg-[#EDE9FE] hover:bg-[#DDD6FE] text-purple-950'
@@ -365,16 +365,16 @@ export const AppLockScreen: React.FC<AppLockScreenProps> = ({
             title={isEn ? 'Biometrics' : 'Biometria'}
           >
             {isAuthenticatingBio ? (
-              <RefreshCw className="w-6 h-6 animate-spin text-purple-950" />
+              <RefreshCw className="w-5 h-5 sm:w-6 sm:h-6 animate-spin text-purple-950" />
             ) : (
-              <Fingerprint className="w-7 h-7 text-[#0052FF]" />
+              <Fingerprint className="w-6 h-6 sm:w-7 sm:h-7 text-[#0052FF]" />
             )}
           </button>
 
           <button
             type="button"
             onClick={() => handleDigitPress('0')}
-            className="h-14 sm:h-16 rounded-2xl bg-white hover:bg-neutral-100 active:bg-neutral-200 border-2 border-black font-['Outfit'] font-black text-2xl text-black shadow-neo-xs btn-press flex items-center justify-center cursor-pointer transition-transform"
+            className="h-13 sm:h-16 rounded-2xl bg-white hover:bg-neutral-100 active:bg-neutral-200 border-2 border-black font-['Outfit'] font-black text-xl sm:text-2xl text-black shadow-neo-xs btn-press flex items-center justify-center cursor-pointer transition-transform"
             id="btn-keypad-0"
           >
             0
@@ -383,11 +383,11 @@ export const AppLockScreen: React.FC<AppLockScreenProps> = ({
           <button
             type="button"
             onClick={handleBackspace}
-            className="h-14 sm:h-16 rounded-2xl bg-white hover:bg-neutral-100 active:bg-neutral-200 border-2 border-black font-['Outfit'] font-black text-black shadow-neo-xs btn-press flex items-center justify-center cursor-pointer transition-transform"
+            className="h-13 sm:h-16 rounded-2xl bg-white hover:bg-neutral-100 active:bg-neutral-200 border-2 border-black font-['Outfit'] font-black text-black shadow-neo-xs btn-press flex items-center justify-center cursor-pointer transition-transform"
             id="btn-keypad-backspace"
             title={isEn ? 'Backspace' : 'Apagar'}
           >
-            <Delete className="w-6 h-6 text-neutral-800" />
+            <Delete className="w-5 h-5 sm:w-6 sm:h-6 text-neutral-800" />
           </button>
         </div>
 
