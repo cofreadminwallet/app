@@ -1,78 +1,77 @@
-# TERMOS DE USO, POLÍTICA DE PRIVACIDADE E ISENÇÃO DE RESPONSABILIDADE
+# TERMOS DE USO, POLÍTICA DE PRIVACIDADE E AVISO LEGAL (DISCLAIMER)
 
 **Aplicativo:** CofreAdmin Wallet (Gerenciador Financeiro Web3 Self-Custodial)
-
-Ao utilizar nosso aplicativo, você concorda integralmente com as condições, políticas e isenções de responsabilidade descritas neste documento unificado. Se você não concordar com qualquer termo aqui disposto, não deverá utilizar o aplicativo.
+*Ao utilizar nosso aplicativo, você concorda integralmente com as condições, políticas e isenções de responsabilidade descritas neste documento unificado. Se não concordar com qualquer termo aqui estabelecido, não deverá utilizar o aplicativo.*
 
 ---
 
-## PARTE 1: TERMOS DE USO
+## PARTE 1: TERMOS DE USO E JURISDIÇÕES GLOBAIS
 
 ### 1.1. Escopo do Serviço
-O CofreAdmin é uma aplicação web3 de gerenciamento e controle financeiro pessoal (Gerenciador Financeiro Web3 Self-Custodial). O aplicativo oferece ferramentas visuais para criação de metas, acompanhamento de despesas, registros de evolução e integração técnica com uma carteira digital em USDC (Stablecoin) na blockchain da rede/Base (camada L2 da Ethereum).
+O CofreAdmin é um aplicativo Web3 de gerenciamento e controle financeiro pessoal (Gerenciador Financeiro Web3 de Autocustódia). O app fornece ferramentas visuais para criar metas, rastrear despesas, registrar a evolução e oferecer integração técnica com uma carteira digital em USDC (Stablecoin) na blockchain da rede Base (uma camada de escalonamento Ethereum L2).  
+O CofreAdmin opera e gerencia registros financeiros baseados em USDC (USD Coin), uma stablecoin cuja emissão e paridade econômica estão atreladas ao Dólar Americano (USD). O usuário reconhece que o USDC opera em uma infraestrutura blockchain descentralizada, sujeita às regras tecnológicas do protocolo emissor e da rede de transferência. A plataforma não exerce interferência, custódia direta de chaves privadas ou garantias em relação à estabilidade macroeconômica global ou falhas sistêmicas de redes de terceiros.
 
-* O CofreAdmin opera e gerencia registros financeiros baseados em USDC (USD Coin), um criptoativo do tipo stablecoin cuja emissão e paridade econômica são atreladas ao dólar americano (USD). O usuário reconhece que o USDC opera em infraestrutura descentralizada de blockchain, estando sujeito às regras tecnológicas do protocolo emissor e da rede de transferência, não havendo por parte da plataforma qualquer ingerência, custódia direta de chaves privadas ou garantia sobre a estabilidade macroeconômica global ou falhas sistêmicas da rede de terceiros.
-
-### 1.2. Elegibilidade (Público-Alvo)
-O CofreAdmin é projetado para usuários a partir de 14 anos de idade. Em consonância com a Lei Geral de Proteção de Dados Pessoais (Lei nº 13.709/2018 - LGPD) e o Estatuto da Criança e do Adolescente (Lei nº 8.069/1990 - ECA), os usuários menores de 18 anos declaram possuir a devida autorização e assistência de seus pais ou responsáveis legais para aceitar estes termos, cadastrar-se e utilizar a plataforma.
+### 1.2. Elegibilidade Global e Marcos Legais Regionais
+O CofreAdmin foi projetado para usuários a partir de 14 anos globalmente. Para garantir conformidade internacional, o aplicativo alinha-se a padrões regionais específicos:
+* **Brasil (LGPD - Lei Geral de Proteção de Dados, Lei nº 13.709/2018 e ECA):** Usuários entre 14 e 18 anos declaram possuir autorização e assistência de seus pais ou responsáveis legais para aceitar estes termos e utilizar a plataforma.
+* **União Europeia (GDPR - Regulamento Geral sobre a Proteção de Dados):** Cumpre com os rigorosos direitos dos titulares de dados, bases legais para processamento, minimização de dados e proteções de transferência transfronteiriça para usuários que residem no Espaço Econômico Europeu (EEE).
+* **Estados Unidos (CCPA/CPRA e COPPA):** Cumpre com os padrões de privacidade do consumidor da Califórnia (CCPA/CPRA) em relação à transparência na coleta de dados e direitos de exclusão (opt-out), bem como com a Lei de Proteção à Privacidade Online de Crianças (COPPA), exigindo consentimento parental verificável para usuários menores de 13 anos, quando aplicável.
 
 ---
 
-## PARTE 2: ISENÇÃO DE RESPONSABILIDADE (DESCENTRALIZAÇÃO E WEB3)
+## PARTE 2: AVISO LEGAL (DESCENTRALIZAÇÃO E ISENÇÕES WEB3)
 
-### 2.1. Natureza Estritamente Não-Custodial e Infraestrutura Blockchain
-O CofreAdmin não é uma instituição financeira, banco tradicional, corretora, transmissor de dinheiro ou custodiante de ativos. Toda e qualquer criptomoeda, token, saldo digital ou ativo transferido para a carteira gerada no aplicativo fica armazenado de forma descentralizada diretamente na blockchain da rede/Base. O CofreAdmin funciona exclusivamente como software de interface visual e cliente de auto-custódia para que o usuário interaja com a rede blockchain. Nós não temos acesso, posse, controle, guarda ou gerência sobre os fundos dos usuários.
+### 2.1. Natureza Estritamente Não Custodial e Infraestrutura Blockchain
+O CofreAdmin não é uma instituição financeira, banco tradicional, corretora, transmissor de dinheiro ou custodiante de ativos. Qualquer criptomoeda, token, saldo digital ou ativo transferido para a carteira gerada dentro do aplicativo é armazenado de forma descentralizada diretamente na blockchain da rede Base. O CofreAdmin funciona exclusivamente como um software de interface visual e cliente de autocustódia, permitindo que o usuário interaja com a rede blockchain. Nós não temos acesso, posse, controle, custódia ou gerenciamento sobre os fundos dos usuários.
 
 ### 2.2. Arquitetura de Chaves Criptográficas e Responsabilidade Exclusiva
-A chave privada da sua carteira é gerada exclusivamente no seu navegador/dispositivo através da Web Crypto API do sistema operacional e protegida em repouso por criptografia simétrica AES-GCM de 256 bits com derivação PBKDF2. Nenhum servidor, API de retaguarda ou banco de dados do CofreAdmin recebe, trafega, armazena ou possui cópia da sua chave privada. É de responsabilidade única e exclusiva do usuário a guarda, segurança e backup de suas credenciais de acesso, chaves privadas ou frases de recuperação. Em caso de perda de acesso ao dispositivo, perda de chaves secretas ou exclusão de conta sem o devido saque, o CofreAdmin não possui meios técnicos para recuperar seus ativos digitais. A perda das chaves implica a perda irreversível dos fundos na rede/Base.
+Sua carteira é gerada localmente usando mnemônicos de 12 palavras do padrão BIP-39. A chave privada é gerada exclusivamente no seu navegador ou dispositivo usando a Web Crypto API do sistema operacional. Ela é protegida em repouso por criptografia simétrica AES-GCM de 256 bits, alimentada por uma `CryptoKey` não extraível do IndexedDB (envelope v3) ou por derivação de chave PBKDF2 com 100 mil iterações (envelope v2). Nenhum servidor, API de backend ou banco de dados pertencente ao CofreAdmin recebe, transmite, armazena ou retém uma cópia de sua chave privada ou frase mnemônica. É de responsabilidade única e exclusiva do usuário salvaguardar, proteger e fazer backup de suas credenciais de acesso, chaves privadas ou frases de recuperação. Em caso de perda de acesso ao dispositivo, perda de chaves secretas ou exclusão da conta sem saque prévio, o CofreAdmin não tem meios técnicos para recuperar seus ativos digitais. A perda das chaves implica na perda irreversível dos fundos na rede Base.
 
 ### 2.3. Volatilidade, Taxas de Rede e Riscos Tecnológicos
-O usuário assume total responsabilidade pelos riscos de mercado ao operar com ativos digitais, incluindo volatilidade de preços. O CofreAdmin não se responsabiliza por taxas de rede cobradas pela blockchain da rede/Base, variações de slippage ou por falhas na validação de transações nativas da própria rede descentralizada.
+O usuário assume total responsabilidade pelos riscos de mercado ao operar com ativos digitais, incluindo a volatilidade de preços. O CofreAdmin utiliza a infraestrutura de metatransações EIP-3009 (TransferWithAuthorization) para oferecer experiências sem taxa de gás (gasless), pagando as taxas de transação e do protocolo diretamente do saldo em USDC. No entanto, o CofreAdmin não é responsável pelas taxas de rede (gas fees) nativas cobradas pela blockchain da rede Base, variações de slippage ou falhas na validação de transações inerentes à própria rede descentralizada.
 
 ---
 
-## PARTE 3: POLÍTICA DE PRIVACIDADE E SEGURANÇA DOS DADOS (LGPD)
+## PARTE 3: POLÍTICA DE PRIVACIDADE E SEGURANÇA DE DADOS
 
 ### 3.1. Dados Coletados e Finalidades Estritas
-* **Informações Pessoais:** (Nome, Endereço de E-mail e IDs de Usuário via Login OAuth) coletadas com a finalidade estrita de autenticação de segurança e gerenciamento de conta.
-* **Outras Informações Financeiras e Metas:** Saldo dos cofres visuais, histórico de metas criadas, categorias de gastos e o endereço público da sua carteira na rede/Base, sincronizados no Firebase/Firestore para a funcionalidade do app e persistência entre dispositivos autorizados.
-* **Local Aproximado:** Inferido através do endereço IP do dispositivo para segurança de sessão e prevenção de fraudes.
-* **Informações de Desempenho e Diagnósticos:** Dados técnicos de erro e travamento coletados para análise técnica e correção de bugs.
+* **Informações Pessoais:** Nome, E-mail e IDs de Usuário via Login OAuth (Google e Discord) coletados para os fins estritos de autenticação de segurança e gerenciamento de conta.
+* **Informações Financeiras e Metas:** Saldos de cofres visuais, categorizações inteligentes, notas e descrições de transações (memos) e seu endereço de carteira pública na rede Base, sincronizados no Firebase/Firestore para o funcionamento do app e sincronização entre dispositivos autorizados. No modo offline ou visitante (quando o banco de dados em nuvem não está configurado), esses dados permanecem estritamente no armazenamento local (Local Storage).
+* **Localização Aproximada:** Inferida através do endereço IP do dispositivo para segurança da sessão e prevenção de fraudes.
+* **Informações de Desempenho e Diagnóstico:** Dados sobre erros técnicos e travamentos coletados para análise técnica e correção de bugs.
 
-### 3.2. Controle de Acesso e Endurecimento de Segurança (Firestore Security Rules)
-O banco de dados do CofreAdmin opera sob regras restritas de controle de acesso (Security Rules). Cada usuário autenticado possui acesso exclusivo de leitura e gravação para os seus próprios registros. Nenhuma entidade ou usuário externo possui permissão técnica para inspecionar, alterar ou consultar o painel financeiro de terceiros.
+### 3.2. Controle de Acesso e Fortalecimento de Segurança
+O banco de dados em nuvem do CofreAdmin opera sob regras estritas de controle de acesso (Firestore Security Rules). Cada usuário autenticado possui acesso exclusivo de leitura e escrita estritamente aos seus próprios registros, mediante verificação de propriedade do e-mail. Nenhuma entidade externa ou usuário tem permissão técnica para inspecionar, alterar ou consultar painéis financeiros de terceiros.
 
-### 3.3. Criptografia em Trânsito e em Repouso
-Todos os dados transmitidos pelo CofreAdmin utilizam criptografia de ponta em trânsito (protocolos HTTPS/TLS). As chaves locais de auto-custódia são criptografadas em repouso com algoritmo padrão militar AES-GCM 256 bits, impedindo a leitura indevida por scripts maliciosos ou invasões de terceiros.
+### 3.3. Criptografia e Segurança do Dispositivo
+Todos os dados transmitidos pelo CofreAdmin utilizam criptografia de ponta em trânsito (protocolos HTTPS/TLS). As chaves locais de autocustódia são criptografadas em repouso usando algoritmos AES-GCM de 256 bits de padrão militar. Além disso, o bloqueio local de sessão utiliza hash de PIN SHA-256 no lado do cliente com um salt isolado no dispositivo e biometria de hardware WebAuthn (Impressão Digital / Face ID). Esses artefatos de autenticação e PINs nunca são transmitidos aos nossos servidores.
 
 ### 3.4. Anúncios e Notificações Push
-Usamos o método de anúncios por Notificações Push, mais apenas se o usuário clicar em "Permitir", "Aceito" ou equivalente. O processo é totalmente anônimo e não coleta dados pessoais (como nome ou e-mail). Você está no controle e pode cancelar a inscrição quando quiser direto nas configurações do seu navegador/dispositivo. ** Dependendo da versão, o aplicativo pode incluí-lo ou omiti-lo.
+Utilizamos Notificações Push para anúncios/atualizações *apenas* se o usuário clicar em "Permitir", "Aceitar" ou equivalente. O processo é totalmente anônimo e não coleta dados pessoais (como nome ou e-mail). Você permanece no controle total e pode cancelar a inscrição a qualquer momento diretamente nas configurações do seu navegador ou dispositivo. *(Dependendo da versão, o aplicativo pode apresentar ou omitir este recurso).*
 
 ---
 
 ## PARTE 4: EXCLUSÃO DE CONTA E IMUTABILIDADE DA BLOCKCHAIN
 
-### 4.1. Direito de Exclusão (LGPD)
-Em conformidade com a LGPD (Lei nº 13.709/2018), o usuário possui o direito de solicitar a exclusão total e definitiva de seus dados dos servidores do CofreAdmin a qualquer momento através das opções do aplicativo ou dos canais oficiais de suporte.
+### 4.1. Direito à Exclusão (Padrões Globais de Privacidade)
+Em conformidade com as leis internacionais de proteção de dados (incluindo LGPD, GDPR e CCPA), o usuário tem o direito de solicitar a exclusão total e permanente de seus dados dos servidores do CofreAdmin a qualquer momento, através das opções do aplicativo ou dos canais oficiais de suporte.
 
-### 4.2. Fluxo de Exclusão de Servidores Privados
-Ao processar o pedido de exclusão do CofreAdmin, todos os seus dados operacionais e financeiros (despesas, receitas, categorias e cofres) são definitivamente e permanentemente destruídos de nossos servidores.
+### 4.2. Fluxo de Exclusão no Servidor Privado
+Ao processar uma solicitação de exclusão do CofreAdmin, todos os dados operacionais e financeiros (despesas, receitas, categorias e cofres) são definitiva e permanentemente destruídos de nossos servidores.
 
-### 4.3. Regra Especial Web3: Imutabilidade da Blockchain e LGPD
-O usuário declara estar ciente de que, por limitações e características nativas da tecnologia blockchain, os registros de transações públicas e o endereço da carteira digital são permanentes e imutáveis. A carteira digital continuará existindo de forma autônoma na blockchain sob posse exclusiva do portador da chave privada.
-* Em estrita conformidade com o Art. 7º, inciso VI, e o Art. 16 da LGPD (Lei nº 13.709/2018), para fins de exercício regular de direitos em processo judicial ou administrativo, o CofreAdmin reterá de forma segregada e protegida um log técnico de auditoria e conformidade. Esse registro conterá o timestamp (data/hora) do aceite dos termos de uso, de exclusão, o hash de status, o e-mail autenticado e o endereço da carteira, mantidos exclusivamente para rastreabilidade de segurança e defesa da plataforma, sem atrelamento a dados de transações financeiras após a exclusão.
-
----
-
-## PARTE 5: DO ATENDIMENTO AO USUÁRIO E ESCLARECIMENTOS
-
-O aplicativo disponibiliza canal de atendimento exclusivamente para esclarecimento de dúvidas conceituais, recebimento de sugestões/feedbacks, e relato de problemas técnicos.
-
-* **Limitação de Escopo:** Por se tratar de uma aplicação de auto-custódia (non-custodial, self-custodial), o usuário declara estar ciente de que a APLICATIVO não possui acesso, controle ou custódia sobre as chaves privadas (private key, seed phrases), senhas ou ativos digitais do usuário.
-* **Impossibilidade de Intervenção:** O atendimento não realiza e não tem capacidade técnica de realizar: recuperação de chaves privadas, estorno de transações na blockchain, cancelamento de operações ou correção de erros cometidos pelo usuário no envio de ativos, e etapas relacionadas.
-* **Canal Disponível:** O usuário poderá entrar em contato através do e-mail: cofreadminwallet@gmail.com e/ou canal disponibilizado no próprio aplicativo.
-* **Prazos:** As mensagens serão lidas e respondidas conforme a disponibilidade da equipe, não gerando obrigação de nível de serviço (SLA) para resoluções imediatas.
+### 4.3. Regra Especial Web3: Imutabilidade da Blockchain e Conformidade Legal
+O usuário reconhece que, devido às limitações e características nativas da tecnologia blockchain, os registros públicos de transação e o endereço da carteira digital são permanentes e imutáveis. A carteira digital continuará a existir de forma autônoma na blockchain sob a propriedade exclusiva do detentor da chave privada.  
+Na medida permitida pelas leis aplicáveis (como o Artigo 7º, Inciso VI, e Artigo 16 da LGPD brasileira, exceções de conformidade do GDPR e marcos globais equivalentes) para o exercício regular de direitos em processos judiciais, fiscais ou administrativos, o CofreAdmin reterá de maneira segregada e protegida um registro técnico de auditoria e conformidade (incluindo o Clickwrap da Política de Privacidade no primeiro acesso e Certificados de Confirmação de Backup da Carteira). Este registro de gravação única (write-once) conterá a data e hora de aceitação dos termos, solicitações de exclusão, identificadores com hash SHA-256, e-mail autenticado, impressões digitais de auditoria (audit fingerprints) e endereços da carteira, mantidos exclusivamente para rastreabilidade de segurança e defesa da plataforma, completamente dissociados dos dados de transações financeiras após a exclusão da conta.
 
 ---
+
+## PARTE 5: SUPORTE AO USUÁRIO E ESCLARECIMENTOS
+
+O aplicativo fornece um canal de suporte exclusivamente para esclarecimento de dúvidas conceituais, recebimento de sugestões/feedback e relato de problemas técnicos.
+
+* **Limitação de Escopo:** Sendo um aplicativo não custodial / de autocustódia, o usuário reconhece que o aplicativo **não tem acesso, controle ou custódia** sobre as chaves privadas, frases semente (seed phrases), senhas ou ativos digitais do usuário.
+* **Impossibilidade de Intervenção:** O Suporte **não realiza e não possui capacidade técnica para realizar:** recuperação de chaves privadas, estorno de transações na blockchain, cancelamento de operações ou correções de erros cometidos pelo usuário durante transferências de ativos.
+* **Canais Disponíveis:** Os usuários podem entrar em contato com o suporte pelo e-mail: **cofreadminwallet@gmail.com**, através do Discord oficial em **@cofreadmin** e/ou através do canal de feedback disponibilizado no próprio aplicativo.
+* **Aviso sobre o SLA (Nível de Serviço):** As mensagens serão lidas e respondidas com base na disponibilidade da equipe, não gerando nenhum acordo de nível de serviço (SLA) ou obrigação de resolução imediata.
 
 <sub>Global: [Privacy Policy](https://github.com/cofreadminwallet/docs/blob/main/en-us/privacy-policy/privacy-policy.md)</sub>
