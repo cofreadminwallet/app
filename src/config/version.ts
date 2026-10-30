@@ -8,6 +8,6 @@
  * 2. Login Screen / Secure Access (top header badge)
  * 3. Server API (/api/version), package.json, and package-lock.json
  */
-export const APP_VERSION = 'v1.0.5';
+export const APP_VERSION = 'v1.0.5-b';
 export const APP_VERSION_STATUS = 'Ready';
 export const APP_VERSION_LABEL = `${APP_VERSION} ${APP_VERSION_STATUS}`;
