@@ -97,6 +97,40 @@ export class LocalStorageDatabaseService {
     return `${baseKey}_${resolvedProfile}`;
   }
 
+  private doesUnscopedUserMatchProfile(resolvedProfile: string): boolean {
+    if (typeof window === 'undefined') return false;
+    if (!resolvedProfile || resolvedProfile === 'anonymous' || resolvedProfile === 'usr_default_01') {
+      return true;
+    }
+    try {
+      const rawUser = localStorage.getItem(STORAGE_KEYS.USER);
+      if (!rawUser) return false;
+      const parsed = JSON.parse(rawUser) as Partial<UserProfile>;
+      if (!parsed || typeof parsed !== 'object') return false;
+
+      if (resolvedProfile.startsWith('google_')) {
+        if (parsed.provider === 'discord' || (parsed.authId && parsed.authId.startsWith('discord_'))) {
+          return false;
+        }
+      }
+
+      const unscopedAuthKey = parsed.authId ? getProfileStorageKey(parsed.authId) : '';
+      const unscopedEmailKey = parsed.email ? getProfileStorageKey(parsed.email) : '';
+      const strippedResolved = resolvedProfile.replace(/^google_/, '');
+      const strippedAuth = unscopedAuthKey.replace(/^google_/, '');
+
+      return Boolean(
+        (unscopedAuthKey && unscopedAuthKey === resolvedProfile) ||
+        (strippedResolved && (
+          (strippedAuth && strippedAuth === strippedResolved) ||
+          (unscopedEmailKey && unscopedEmailKey === strippedResolved)
+        ))
+      );
+    } catch {
+      return false;
+    }
+  }
+
   private getStorageDataWithFallbacks(baseKey: string, profileKey?: string): string | null {
     if (typeof window === 'undefined') return null;
     const resolvedProfile = profileKey ? getProfileStorageKey(profileKey) : this.getActiveProfileKey();
@@ -111,16 +145,26 @@ export class LocalStorageDatabaseService {
       if (fallbackData) return fallbackData;
     } else if (resolvedProfile.startsWith('discord_')) {
       const stripped = resolvedProfile.slice('discord_'.length);
-      const fallbackData = localStorage.getItem(`${baseKey}_${stripped}`);
-      if (fallbackData) return fallbackData;
-    } else {
+      // Only allow bare numeric Discord IDs (<discord_id>); never bare email strings (which belong to Google legacy)
+      if (/^[0-9]+$/.test(stripped)) {
+        const fallbackData = localStorage.getItem(`${baseKey}_${stripped}`);
+        if (fallbackData) return fallbackData;
+      }
+      return null;
+    } else if (resolvedProfile !== 'guest_offline') {
       const googleFallback = localStorage.getItem(`${baseKey}_google_${resolvedProfile}`);
       if (googleFallback) return googleFallback;
     }
 
-    // Fallback 2: unscoped key
-    const unscopedData = localStorage.getItem(baseKey);
-    if (unscopedData) return unscopedData;
+    // Fallback 2: unscoped key (strictly when unscoped record belongs to the requested Google/legacy profile)
+    if (
+      !resolvedProfile.startsWith('discord_') &&
+      resolvedProfile !== 'guest_offline' &&
+      this.doesUnscopedUserMatchProfile(resolvedProfile)
+    ) {
+      const unscopedData = localStorage.getItem(baseKey);
+      if (unscopedData) return unscopedData;
+    }
 
     return null;
   }
@@ -132,7 +176,7 @@ export class LocalStorageDatabaseService {
       return (
         localStorage.getItem(`${STORAGE_KEYS.CUSTOM_AVATAR}_${key}`) ||
         localStorage.getItem(STORAGE_KEYS.AVATAR_BACKUP + key) ||
-        localStorage.getItem(STORAGE_KEYS.CUSTOM_AVATAR)
+        (this.doesUnscopedUserMatchProfile(key) ? localStorage.getItem(STORAGE_KEYS.CUSTOM_AVATAR) : null)
       );
     } catch {
       return null;
@@ -151,7 +195,7 @@ export class LocalStorageDatabaseService {
       localStorage.setItem(STORAGE_KEYS.AVATAR_BACKUP + key, avatarData);
       localStorage.setItem(STORAGE_KEYS.CUSTOM_AVATAR, avatarData);
     } catch (e) {
-      console.error('Erro ao salvar avatar customizado no localStorage:', e);
+      console.error('Failed to save custom avatar in localStorage:', e);
     }
   }
 
@@ -197,6 +241,14 @@ export class LocalStorageDatabaseService {
     this.setPersistedAvatarSync(avatarData, profileKey);
   }
 
+  private sanitizeUserForPlainStorage(user: UserProfile): UserProfile {
+    const cleanUser: UserProfile = { ...user };
+    delete cleanUser.walletPrivateKey;
+    delete cleanUser.walletMnemonic;
+    delete cleanUser.securityPinHash;
+    return cleanUser;
+  }
+
   getUser(profileKey?: string): UserProfile {
     if (typeof window === 'undefined') return { ...DEFAULT_USER };
     try {
@@ -205,14 +257,33 @@ export class LocalStorageDatabaseService {
 
       if (!data) return { ...DEFAULT_USER };
       const parsed = JSON.parse(data) as Partial<UserProfile>;
-      const user: UserProfile = {
+      const user: UserProfile = this.sanitizeUserForPlainStorage({
         ...DEFAULT_USER,
         ...parsed,
-      };
+      });
 
       const customAvatar = this.getCustomAvatar(activeProfile);
       if (customAvatar && isCustomUserAvatar(customAvatar) && !isCustomUserAvatar(user.avatarUrl)) {
         user.avatarUrl = customAvatar;
+      }
+
+      // Authoritative address synchronization on boot:
+      // If a dedicated active address is present in cofreadmin_addr_*, guarantee that user.walletAddress
+      // reflects it immediately without waiting for asynchronous background cloud/wallet resolution.
+      const candidateKeys = [
+        activeProfile,
+        activeProfile.replace(/^(google_|discord_)/, ''),
+        user.email ? getProfileStorageKey(user.email) : null,
+        user.authId ? getProfileStorageKey(user.authId) : null,
+        user.id ? getProfileStorageKey(user.id) : null,
+      ].filter(Boolean) as string[];
+
+      for (const k of candidateKeys) {
+        const storedAddr = localStorage.getItem(`cofreadmin_addr_${k}`);
+        if (storedAddr && /^0x[a-fA-F0-9]{40}$/.test(storedAddr.trim())) {
+          user.walletAddress = storedAddr.trim();
+          break;
+        }
       }
 
       if (activeProfile === 'anonymous' && (user.authId || user.email || user.id)) {
@@ -239,15 +310,29 @@ export class LocalStorageDatabaseService {
         if (targetKey) {
           this.setActiveProfileKey(targetKey);
         }
-        if (isCustomUserAvatar(user.avatarUrl)) {
-          this.setCustomAvatarSync(user.avatarUrl, targetKey);
+        const sanitizedUser = this.sanitizeUserForPlainStorage(user);
+        if (isCustomUserAvatar(sanitizedUser.avatarUrl)) {
+          this.setCustomAvatarSync(sanitizedUser.avatarUrl, targetKey);
         } else if (targetKey) {
           const existingCustom = this.getCustomAvatar(targetKey);
           if (existingCustom && isCustomUserAvatar(existingCustom)) {
-            user.avatarUrl = existingCustom;
+            sanitizedUser.avatarUrl = existingCustom;
           }
         }
-        const serialized = JSON.stringify(user);
+
+        // Keep cofreadmin_addr_* sister storage keys synchronized with active address
+        if (sanitizedUser.walletAddress && /^0x[a-fA-F0-9]{40}$/.test(sanitizedUser.walletAddress.trim())) {
+          const keysToSync = new Set<string>();
+          if (targetKey) keysToSync.add(getProfileStorageKey(targetKey));
+          if (user.email) keysToSync.add(getProfileStorageKey(user.email));
+          if (user.authId) keysToSync.add(getProfileStorageKey(user.authId));
+          if (user.id) keysToSync.add(getProfileStorageKey(user.id));
+          for (const k of keysToSync) {
+            localStorage.setItem(`cofreadmin_addr_${k}`, sanitizedUser.walletAddress.trim());
+          }
+        }
+
+        const serialized = JSON.stringify(sanitizedUser);
         localStorage.setItem(this.getScopedKey(STORAGE_KEYS.USER, targetKey), serialized);
         localStorage.setItem(STORAGE_KEYS.USER, serialized);
       } else {
@@ -255,7 +340,7 @@ export class LocalStorageDatabaseService {
         localStorage.removeItem(STORAGE_KEYS.USER);
       }
     } catch (e) {
-      console.error('Erro ao salvar usuário no localStorage:', e);
+      console.error('Failed to save user in localStorage:', e);
     }
   }
 
@@ -287,7 +372,7 @@ export class LocalStorageDatabaseService {
     try {
       localStorage.setItem(this.getScopedKey(STORAGE_KEYS.CATEGORIES, profileKey), JSON.stringify(categories));
     } catch (e) {
-      console.error('Erro ao salvar categorias:', e);
+      console.error('Failed to save categories:', e);
     }
   }
 
@@ -323,7 +408,7 @@ export class LocalStorageDatabaseService {
     try {
       localStorage.setItem(this.getScopedKey(STORAGE_KEYS.VAULTS, profileKey), JSON.stringify(vaults));
     } catch (e) {
-      console.error('Erro ao salvar cofres:', e);
+      console.error('Failed to save vaults:', e);
     }
   }
 
@@ -361,7 +446,7 @@ export class LocalStorageDatabaseService {
         JSON.stringify(transactions)
       );
     } catch (e) {
-      console.error('Erro ao salvar transações:', e);
+      console.error('Failed to save transactions:', e);
     }
   }
 
@@ -399,7 +484,7 @@ export class LocalStorageDatabaseService {
       );
       localStorage.setItem(this.getScopedKey(STORAGE_KEYS.ONCHAIN_LEDGER, profileKey), JSON.stringify(deduped));
     } catch (e) {
-      console.error('Erro ao salvar livro-razão on-chain:', e);
+      console.error('Failed to save on-chain ledger:', e);
     }
   }
 
@@ -450,7 +535,7 @@ export class LocalStorageDatabaseService {
       const deduped = Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
       localStorage.setItem(this.getScopedKey(STORAGE_KEYS.CONTACTS, profileKey), JSON.stringify(deduped));
     } catch (e) {
-      console.error('Erro ao salvar contatos:', e);
+      console.error('Failed to save contacts:', e);
     }
   }
 
@@ -611,7 +696,7 @@ export class LocalStorageDatabaseService {
     try {
       localStorage.setItem(storageKey, cipher);
     } catch (e) {
-      console.error('Erro ao salvar chave criptografada da carteira:', e);
+      console.error('Failed to save encrypted wallet key:', e);
     }
   }
 
@@ -674,7 +759,10 @@ export class LocalStorageDatabaseService {
 
   clearAllHardSync(): void {
     if (typeof window === 'undefined') return;
-    localStorage.clear();
+    try {
+      localStorage.clear();
+      sessionStorage.clear();
+    } catch {}
   }
 
   async clearAllHard(): Promise<void> {

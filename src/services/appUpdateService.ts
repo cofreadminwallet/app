@@ -104,6 +104,15 @@ class AppUpdateService {
    */
   public async applyUpdateAndReload(): Promise<void> {
     if (this.isApplyingUpdate || typeof window === 'undefined') return;
+
+    // Prevent rapid refresh loops if server version mismatch persists during cold start
+    const lastReload = parseInt(sessionStorage.getItem('cofreadmin_version_reload_ts') || '0', 10);
+    if (Date.now() - lastReload < 10000) {
+      console.warn('[AppUpdate] Recarregamento ignorado para evitar loops.');
+      return;
+    }
+    sessionStorage.setItem('cofreadmin_version_reload_ts', Date.now().toString());
+
     this.isApplyingUpdate = true;
 
     console.log('[AppUpdate] Limpando caches e atualizando o app automaticamente...');

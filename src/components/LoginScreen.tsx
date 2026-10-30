@@ -19,7 +19,12 @@ interface LoginScreenProps {
     userProfileUpdates: Partial<UserProfile>,
     categories?: any[],
     vaults?: any[],
-    transactions?: any[]
+    transactions?: any[],
+    newlyCreatedWallet?: {
+      address: string;
+      privateKey: string;
+      mnemonic?: string;
+    }
   ) => void;
 }
 
@@ -123,17 +128,31 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       let cloudData: any = null;
       if (isGoogleAuth) {
         try {
+          await authService.verifyActiveSessionToken(false).catch(() => {});
           const cloudPromise = db.loadFromCloud(authDocKey, realUserEmail, uid);
           const timeoutCloud = new Promise<null>((resolve) => setTimeout(() => resolve(null), 8000));
           cloudData = await Promise.race([cloudPromise, timeoutCloud]);
+
+          // Secondary confirmation if initial read returned empty right after OAuth popup handshake
+          if (!cloudData) {
+            await new Promise((resolve) => setTimeout(resolve, 350));
+            await authService.verifyActiveSessionToken(true).catch(() => {});
+            cloudData = await Promise.race([
+              db.loadFromCloud(authDocKey, realUserEmail, uid),
+              new Promise<null>((resolve) => setTimeout(() => resolve(null), 6000)),
+            ]);
+          }
         } catch (cloudErr) {
           console.warn('Aviso de verificação do Firestore no login:', cloudErr);
         }
       }
 
       const cloudUser = (cloudData && typeof cloudData === 'object' && cloudData.user) ? cloudData.user : cloudData;
+      const cloudEmail = (cloudUser?.email || cloudData?.email || '').trim().toLowerCase();
+      const cloudMatchesIdentity = !cloudEmail || cloudEmail === realUserEmail.toLowerCase();
       const hasCompleteFirestoreRecord = Boolean(
         cloudData &&
+        cloudMatchesIdentity &&
         (
           Boolean(cloudUser && (
             cloudUser.walletAddress ||
@@ -166,61 +185,58 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             authDocKey,
             `discord_${uid.replace('discord_', '')}`,
             `discord_${sanitizedEmail}`,
-            sanitizedEmail,
             uid,
           ];
 
       let localExistingUser: UserProfile | null = null;
       for (const candKey of candidateProfileKeys) {
         const u = db.getUser(candKey);
+        const matchesProvider = isGoogleAuth
+          ? u.provider !== 'discord' && !(u.authId && u.authId.startsWith('discord_'))
+          : u.provider === 'discord' || Boolean(u.authId && u.authId.startsWith('discord_'));
+        const matchesIdentity = isGoogleAuth
+          ? Boolean(
+              (u.email && u.email.trim().toLowerCase() === realUserEmail.toLowerCase()) ||
+              (u.authId && u.authId.toLowerCase() === authDocKey.toLowerCase())
+            )
+          : Boolean(
+              (u.authId && u.authId.toLowerCase() === authDocKey.toLowerCase()) ||
+              (u.discordId && `discord_${u.discordId}` === authDocKey)
+            );
         if (
           u &&
-          (u.walletAddress || u.termsAccepted || u.hasCompletedOnboarding || (u.email && u.email.toLowerCase() === realUserEmail.toLowerCase()))
+          matchesProvider &&
+          matchesIdentity &&
+          (u.walletAddress || u.termsAccepted || u.hasCompletedOnboarding)
         ) {
           localExistingUser = u;
           break;
         }
       }
 
-      // Check if user already has an existing Web3 wallet stored locally on this device
+      // Check if user already has an existing Web3 wallet stored locally on this device via Service Layer
       let hasLocalWalletStored = false;
       const identityCandidates = Web3Service.getIdentityCandidates(realUserEmail, authDocKey, isGoogleAuth ? 'google' : 'discord');
       for (const idKey of identityCandidates) {
         if (
-          localStorage.getItem(`cofreadmin_addr_${idKey}`) ||
-          localStorage.getItem(`cofreadmin_pk_${idKey}`)
+          db.getWalletKeyCipherSync(`cofreadmin_addr_${idKey}`) ||
+          db.getWalletKeyCipherSync(`cofreadmin_pk_${idKey}`)
         ) {
           hasLocalWalletStored = true;
           break;
         }
       }
 
-      // Also check if unscoped cofreadmin_user in localStorage belongs to this user (strictly for corresponding provider)
-      if (!localExistingUser && isGoogleAuth) {
-        try {
-          const rawUnscoped = localStorage.getItem('cofreadmin_user');
-          if (rawUnscoped) {
-            const parsed = JSON.parse(rawUnscoped);
-            if (
-              parsed &&
-              (parsed.email?.toLowerCase() === realUserEmail.toLowerCase() ||
-               parsed.walletAddress ||
-               parsed.termsAccepted)
-            ) {
-              localExistingUser = { ...DEFAULT_USER, ...parsed };
-            }
-          }
-        } catch {}
-      }
-
       const hasCompleteLocalRecord = Boolean(
-        localExistingUser &&
+        hasLocalWalletStored ||
         (
-          hasLocalWalletStored ||
-          localExistingUser.walletAddress ||
-          localExistingUser.termsAccepted ||
-          localExistingUser.hasCompletedOnboarding ||
-          (localExistingUser.email && localExistingUser.email.toLowerCase() === realUserEmail.toLowerCase() && localExistingUser.isLoggedIn)
+          localExistingUser &&
+          (
+            localExistingUser.walletAddress ||
+            localExistingUser.termsAccepted ||
+            localExistingUser.hasCompletedOnboarding ||
+            localExistingUser.isLoggedIn
+          )
         )
       );
 
@@ -259,6 +275,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         let walletAddress = effectiveUser?.walletAddress || '';
         let walletPrivateKey = effectiveUser?.walletPrivateKey || '';
         let walletMnemonic: string | undefined = undefined;
+        let newlyCreatedWallet: { address: string; privateKey: string; mnemonic?: string } | undefined = undefined;
 
         try {
           const walletRes = await Web3Service.connectGoogleWallet(
@@ -275,6 +292,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           }
           if (walletRes.mnemonic) {
             walletMnemonic = walletRes.mnemonic;
+          }
+          if (walletRes.isNewlyCreated && walletRes.address && walletRes.privateKey) {
+            newlyCreatedWallet = {
+              address: walletRes.address,
+              privateKey: walletRes.privateKey,
+              mnemonic: walletRes.mnemonic,
+            };
           }
         } catch (walletErr) {
           console.warn('Erro ao conectar carteira Web3 segura:', walletErr);
@@ -338,9 +362,27 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           loginPayload,
           resolvedCategories || [],
           resolvedVaults || [],
-          resolvedTransactions || []
+          resolvedTransactions || [],
+          newlyCreatedWallet
         );
         void db.saveToCloud(loginPayload as any, resolvedCategories || [], resolvedVaults || [], resolvedTransactions || []);
+        return;
+      }
+
+      // Guard: if parallel session listener already restored this exact account, complete login directly
+      const postCheckUser = db.getUser(authDocKey);
+      if (
+        postCheckUser &&
+        postCheckUser.isLoggedIn &&
+        postCheckUser.email?.trim().toLowerCase() === realUserEmail.toLowerCase() &&
+        (postCheckUser.termsAccepted || postCheckUser.hasCompletedOnboarding || postCheckUser.walletAddress)
+      ) {
+        onLoginSuccess(
+          postCheckUser,
+          db.getCategories(authDocKey),
+          db.getVaults(authDocKey),
+          db.getTransactions(authDocKey)
+        );
         return;
       }
 
@@ -904,6 +946,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       let walletAddress = '';
       let walletPrivateKey = '';
       let walletMnemonic: string | undefined = undefined;
+      let newlyCreatedWallet: { address: string; privateKey: string; mnemonic?: string } | undefined = undefined;
 
       try {
         const walletRes = await Web3Service.connectGoogleWallet(
@@ -914,6 +957,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         walletAddress = walletRes.address;
         walletPrivateKey = walletRes.privateKey;
         walletMnemonic = walletRes.mnemonic;
+        if (walletRes.isNewlyCreated && walletRes.address && walletRes.privateKey) {
+          newlyCreatedWallet = {
+            address: walletRes.address,
+            privateKey: walletRes.privateKey,
+            mnemonic: walletRes.mnemonic,
+          };
+        }
       } catch (err) {
         console.warn('Web3 Wallet initialization warning:', err);
       }
@@ -921,8 +971,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       // Audit trail of Clickwrap acceptance (LGPD/GDPR compliance)
       const auditTimestamp = new Date().toISOString();
       const resolvedTermsDocUrl = isEn
-        ? 'https://github.com/cofreadminwallet/docs/blob/main/en-us/privacy-policy/privacy-policy.md'
-        : 'https://github.com/cofreadminwallet/docs/blob/main/pt-br/termos/termos-e-privacidade.md';
+        ? 'https://github.com/cofreadminwallet/app/blob/main/docs/en-us/privacy-policy/privacy-policy.md'
+        : 'https://github.com/cofreadminwallet/app/blob/main/docs/pt-br/termos/termos-e-privacidade.md';
       const clientLocaleString = typeof navigator !== 'undefined'
         ? (navigator.languages ? navigator.languages.join(',') : navigator.language)
         : 'unknown';
@@ -1004,7 +1054,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       }
 
       AnalyticsService.trackLogin((provider as any) || 'google');
-      onLoginSuccess(loginPayload, resolvedCats, existingVaults, existingTxs);
+      onLoginSuccess(loginPayload, resolvedCats, existingVaults, existingTxs, newlyCreatedWallet);
     } catch (err: any) {
       setErrorMessage(err.message || (isEn ? 'Error completing registration.' : 'Erro ao finalizar cadastro.'));
     } finally {

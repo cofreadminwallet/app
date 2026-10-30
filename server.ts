@@ -18,6 +18,7 @@ import {
 } from 'viem';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import { base, baseSepolia } from 'viem/chains';
+import { APP_VERSION } from './src/config/version';
 
 const app = express();
 // Trust only the first reverse proxy hop (Cloud Run / App Hosting), preventing X-Forwarded-For client spoofing
@@ -273,7 +274,7 @@ app.get('/api/version', (_req, res) => {
   res.setHeader('Expires', '0');
 
   // Read current package version & build time
-  let appVersion = 'v1.0.2-b';
+  let appVersion = APP_VERSION;
   try {
     const versionFilePath = path.join(process.cwd(), 'src', 'config', 'version.ts');
     if (fs.existsSync(versionFilePath)) {
@@ -1550,7 +1551,7 @@ app.get(['/healthz', '/_health'], (_req, res) => {
   res.status(200).send('OK');
 });
 
-// Explicit Service Worker Route with correct MIME type and headers
+// Explicit Service Worker Route with strict zero-cache headers to prevent mobile browsers from locking stale SW
 app.get('/sw.js', (_req, res) => {
   const publicSw = path.join(process.cwd(), 'public', 'sw.js');
   const distSw = path.join(process.cwd(), 'dist', 'sw.js');
@@ -1559,10 +1560,29 @@ app.get('/sw.js', (_req, res) => {
   if (swPath) {
     res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
     res.setHeader('Service-Worker-Allowed', '/');
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
     res.sendFile(swPath);
   } else {
     res.status(404).send('Service worker not found');
+  }
+});
+
+// Explicit Manifest Route with strict zero-cache headers
+app.get('/manifest.json', (_req, res) => {
+  const publicManifest = path.join(process.cwd(), 'public', 'manifest.json');
+  const distManifest = path.join(process.cwd(), 'dist', 'manifest.json');
+  const localManifest = path.join(getRuntimeDir(), 'manifest.json');
+  const manifestPath = fs.existsSync(publicManifest) ? publicManifest : (fs.existsSync(distManifest) ? distManifest : (fs.existsSync(localManifest) ? localManifest : null));
+  if (manifestPath) {
+    res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.sendFile(manifestPath);
+  } else {
+    res.status(404).send('Manifest not found');
   }
 });
 
@@ -1570,6 +1590,34 @@ app.get('/sw.js', (_req, res) => {
 // 4. Vite & Production SPA Serving
 // -------------------------------------------------------------
 async function startServer() {
+  // Bind port immediately on startup so container readiness and pre-warming probes succeed instantly
+  const server = app.listen(PORT, '0.0.0.0', () => {
+    console.log(`CofreAdmin Server rodando na porta ${PORT}`);
+    console.log(`🚀 Relayer ativo para pagamentos sem ETH (taxa em USDC) na Base.`);
+    console.log(`👉 Endereço do Relayer: ${relayerAccount.address}`);
+  });
+
+  server.on('error', (err: any) => {
+    console.error(`[Server] Erro ao iniciar servidor na porta ${PORT}:`, err);
+  });
+
+  // Graceful shutdown for Cloud Run / App Hosting container lifecycle
+  const handleShutdown = (signal: string) => {
+    console.log(`[Server] Sinal ${signal} recebido. Encerrando conexões com segurança...`);
+    server.close(() => {
+      console.log('[Server] Servidor finalizado com sucesso.');
+      process.exit(0);
+    });
+    // Force shutdown after 10s timeout if connections don't drain
+    setTimeout(() => {
+      console.error('[Server] Timeout no encerramento forçando finalização.');
+      process.exit(1);
+    }, 10000).unref();
+  };
+
+  process.on('SIGTERM', () => handleShutdown('SIGTERM'));
+  process.on('SIGINT', () => handleShutdown('SIGINT'));
+
   if (process.env.NODE_ENV !== 'production') {
     const devDistAssets = path.join(process.cwd(), 'dist', 'assets');
     if (fs.existsSync(devDistAssets)) {
@@ -1597,16 +1645,26 @@ async function startServer() {
       res.setHeader('Expires', '0');
       next();
     });
+
     // Dynamic import to prevent loading Vite and its dependencies into memory in production
-    const { createServer: createViteServer } = await import('vite');
-    const vite = await createViteServer({
-      server: {
-        middlewareMode: true,
-        hmr: false,
-      },
-      appType: 'spa',
+    const viteReadyPromise = import('vite').then(({ createServer: createViteServer }) =>
+      createViteServer({
+        server: {
+          middlewareMode: true,
+          hmr: false,
+        },
+        appType: 'spa',
+      })
+    );
+
+    app.use(async (req, res, next) => {
+      try {
+        const vite = await viteReadyPromise;
+        vite.middlewares(req, res, next);
+      } catch (err) {
+        next(err);
+      }
     });
-    app.use(vite.middlewares);
   } else {
     // Resolve dist folder safely across different container execution paths
     const candidateDist = path.join(process.cwd(), 'dist');
@@ -1622,9 +1680,18 @@ async function startServer() {
       fallthrough: false, // Return 404 if file does not exist in /assets, do NOT fall through to index.html
     }));
 
-    // Serve other root static files (manifest, sw.js, icons, etc)
+    // Serve other root static files with selective cache control:
+    // HTML, sw.js, and manifest.json must NEVER be cached by browser/proxy
     app.use(express.static(distPath, {
-      maxAge: '1h',
+      setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.html') || filePath.endsWith('sw.js') || filePath.endsWith('manifest.json')) {
+          res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+          res.setHeader('Pragma', 'no-cache');
+          res.setHeader('Expires', '0');
+        } else {
+          res.setHeader('Cache-Control', 'public, max-age=3600');
+        }
+      },
     }));
 
     // Return 404 JSON for non-existent API routes so they don't fall through to index.html
@@ -1675,33 +1742,6 @@ async function startServer() {
       }
     });
   }
-
-  const server = app.listen(PORT, '0.0.0.0', () => {
-    console.log(`CofreAdmin Server rodando na porta ${PORT}`);
-    console.log(`🚀 Relayer ativo para pagamentos sem ETH (taxa em USDC) na Base.`);
-    console.log(`👉 Endereço do Relayer: ${relayerAccount.address}`);
-  });
-
-  server.on('error', (err: any) => {
-    console.error(`[Server] Erro ao iniciar servidor na porta ${PORT}:`, err);
-  });
-
-  // Graceful shutdown for Cloud Run / App Hosting container lifecycle
-  const handleShutdown = (signal: string) => {
-    console.log(`[Server] Sinal ${signal} recebido. Encerrando conexões com segurança...`);
-    server.close(() => {
-      console.log('[Server] Servidor finalizado com sucesso.');
-      process.exit(0);
-    });
-    // Force shutdown after 10s timeout if connections don't drain
-    setTimeout(() => {
-      console.error('[Server] Timeout no encerramento forçando finalização.');
-      process.exit(1);
-    }, 10000).unref();
-  };
-
-  process.on('SIGTERM', () => handleShutdown('SIGTERM'));
-  process.on('SIGINT', () => handleShutdown('SIGINT'));
 }
 
 startServer();

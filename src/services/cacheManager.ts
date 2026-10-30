@@ -128,6 +128,21 @@ export const CacheManager = {
       NotificationService.cleanupLegacyPushSubscriptions();
     });
 
+    // Check for Service Worker updates when user returns to the app
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        navigator.serviceWorker.ready
+          .then((reg) => reg.update())
+          .catch(() => {});
+      }
+    });
+
+    window.addEventListener('focus', () => {
+      navigator.serviceWorker.ready
+        .then((reg) => reg.update())
+        .catch(() => {});
+    });
+
     // When the new Service Worker activates and takes control:
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       console.log('[CacheManager] Novo Service Worker assumiu o controle. Cache sincronizado.');

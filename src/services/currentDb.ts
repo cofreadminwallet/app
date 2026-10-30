@@ -91,7 +91,7 @@ export class CurrentDatabaseService implements IDatabaseService {
     await this.local.setPersistedAvatar(avatarData, profileKey);
   }
 
-  // --- Categorias ---
+  // --- Categories ---
   getCategories(profileKey?: string): Category[] {
     return this.local.getCategories(profileKey);
   }
@@ -104,7 +104,7 @@ export class CurrentDatabaseService implements IDatabaseService {
     await this.local.saveCategories(categories, profileKey);
   }
 
-  // --- Cofres (Vaults) ---
+  // --- Vaults ---
   getVaults(profileKey?: string): Vault[] {
     return this.local.getVaults(profileKey);
   }

@@ -24,6 +24,7 @@ import { BottomNav } from './components/BottomNav';
 import { LoginScreen } from './components/LoginScreen';
 import { AppLockScreen } from './components/AppLockScreen';
 import { PWAInstallBanner } from './components/PWAInstallBanner';
+import { QuickCategorizeReceiveToast, QuickCategorizeTxData } from './components/QuickCategorizeReceiveToast';
 
 // Code-splitting / Lazy loading heavy secondary screens to make initial app launch instantaneous
 const VaultsScreen = React.lazy(() => import('./components/VaultsScreen').then(m => ({ default: m.VaultsScreen })));
@@ -216,6 +217,7 @@ export default function App() {
   const [isCryptoReceiveOpen, setIsCryptoReceiveOpen] = useState(false);
   const [scannedCryptoData, setScannedCryptoData] = useState<ParsedCryptoData | null>(null);
   const [selectedDetailTx, setSelectedDetailTx] = useState<Transaction | null>(null);
+  const [pendingQuickCategorizeTx, setPendingQuickCategorizeTx] = useState<QuickCategorizeTxData | null>(null);
   
   // Live on-chain balances directly from Base Blockchain
   const [onChainBalances, setOnChainBalances] = useState<WalletBalances>({
@@ -314,6 +316,45 @@ export default function App() {
     privateKey: string;
     mnemonic?: string;
   } | null>(null);
+
+  // Ensure active Discord session has an isolated wallet distinct from any Google account on the same device
+  useEffect(() => {
+    if (!user.isLoggedIn || user.isGuest || user.provider !== 'discord') return;
+    const discordKey = user.authId || (user.discordId ? `discord_${user.discordId}` : '');
+    if (!discordKey || !discordKey.startsWith('discord_')) return;
+
+    let isCancelled = false;
+    Web3Service.connectGoogleWallet(user.email, user.web3Network || 'base', discordKey)
+      .then((res) => {
+        if (isCancelled || !res.address) return;
+        if (!user.walletAddress || res.address.toLowerCase() !== user.walletAddress.toLowerCase()) {
+          setUser((prev) => {
+            const updated: UserProfile = {
+              ...prev,
+              walletAddress: res.address,
+              walletPrivateKey: res.privateKey || prev.walletPrivateKey,
+              walletMnemonic: res.mnemonic || prev.walletMnemonic,
+            };
+            void db.saveUser(updated, discordKey);
+            return updated;
+          });
+          if (res.isNewlyCreated && res.privateKey) {
+            setMandatoryBackupState({
+              isOpen: true,
+              publicAddress: res.address,
+              privateKey: res.privateKey,
+              mnemonic: res.mnemonic,
+            });
+          }
+          refreshOnChainBalance(res.address, user.web3Network || 'base');
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [user.isLoggedIn, user.isGuest, user.provider, user.authId, user.discordId, user.email]);
 
   // Future Wallet Upgrade / Rotation Check (triggered only if a previous generation key is staged)
   useEffect(() => {
@@ -581,13 +622,28 @@ export default function App() {
       } else if (newlyReceivedTxsToAlert.length > 0) {
         // Only notify if there are genuine, freshly arrived real-time USDC transactions
         const totalReceived = newlyReceivedTxsToAlert.reduce((sum, tx) => sum + tx.amount, 0);
-        showToast(`Recebimento de $${totalReceived.toFixed(2)} USDC registrado no Extrato! 💰`, '⚡');
+        const firstNewTx = newlyReceivedTxsToAlert[0];
+        const savedContacts = db.getContacts(profileKey);
+        const matchedContact = savedContacts.find(
+          (c) => c.address.toLowerCase() === (firstNewTx?.fromAddress || '').toLowerCase()
+        );
+
+        // Display interactive 1-Tap Quick Categorization notification banner
+        setPendingQuickCategorizeTx({
+          id: `tx-onchain-${firstNewTx.txHash}`,
+          amount: totalReceived,
+          tokenSymbol: firstNewTx.tokenSymbol || 'USDC',
+          fromAddress: firstNewTx.fromAddress,
+          txHash: firstNewTx.txHash,
+          contactName: matchedContact?.name,
+        });
+
         triggerHaptic('success');
         if (user.pushNotificationsEnabled && user.notifyOnReceivePayment !== false) {
           NotificationService.notifyPaymentReceived({
             amount: totalReceived,
             tokenSymbol: 'USDC',
-            fromAddress: newlyReceivedTxsToAlert[0]?.fromAddress,
+            fromAddress: firstNewTx?.fromAddress,
           });
         }
       } else if (options?.showToastOnSync) {
@@ -776,18 +832,43 @@ export default function App() {
         let localExistingCandidate: UserProfile | null = null;
         for (const k of candidateProfileKeys) {
           const u = db.getUser(k);
+          const matchesGoogleIdentity =
+            u.provider !== 'discord' &&
+            !(u.authId && u.authId.startsWith('discord_')) &&
+            Boolean(
+              (u.email && u.email.trim().toLowerCase() === userEmail.toLowerCase()) ||
+              (u.authId && u.authId.toLowerCase() === googleProfileKey.toLowerCase())
+            );
           if (
             u &&
-            (u.walletAddress || u.termsAccepted || u.hasCompletedOnboarding || (u.email && u.email.toLowerCase() === userEmail.toLowerCase()))
+            matchesGoogleIdentity &&
+            (u.walletAddress || u.termsAccepted || u.hasCompletedOnboarding)
           ) {
             localExistingCandidate = u;
             break;
           }
         }
 
+        // Check if user already has an existing Web3 wallet stored locally on this device for this exact Google identity
+        let hasLocalGoogleWallet = false;
+        const googleIdCandidates = Web3Service.getIdentityCandidates(userEmail, googleProfileKey, 'google');
+        for (const idKey of googleIdCandidates) {
+          if (
+            db.getWalletKeyCipherSync(`cofreadmin_addr_${idKey}`) ||
+            db.getWalletKeyCipherSync(`cofreadmin_pk_${idKey}`)
+          ) {
+            hasLocalGoogleWallet = true;
+            break;
+          }
+        }
+
+        const cloudRecordEmail = (cloudData?.user?.email || cloudData?.email || '').trim().toLowerCase();
+        const cloudIdentityMatches = !cloudRecordEmail || cloudRecordEmail === userEmail.toLowerCase();
+
         // Early-return logic: verify if Google profile already has a complete Firestore record or local record
         const hasCompleteFirestoreRecord = Boolean(
           cloudData &&
+          cloudIdentityMatches &&
           (cloudData.user || cloudData.email || (cloudData as any).walletAddress) &&
           (
             (cloudData.user && (cloudData.user.walletAddress || cloudData.user.termsAccepted || cloudData.user.hasCompletedOnboarding)) ||
@@ -800,8 +881,11 @@ export default function App() {
         );
 
         const hasCompleteLocalRecord = Boolean(
-          localExistingCandidate &&
-          (localExistingCandidate.walletAddress || localExistingCandidate.termsAccepted || localExistingCandidate.hasCompletedOnboarding)
+          hasLocalGoogleWallet ||
+          (
+            localExistingCandidate &&
+            (localExistingCandidate.walletAddress || localExistingCandidate.termsAccepted || localExistingCandidate.hasCompletedOnboarding)
+          )
         );
 
         if ((hasCompleteFirestoreRecord || hasCompleteLocalRecord) && isMounted) {
@@ -968,7 +1052,7 @@ export default function App() {
       if (isMounted) {
         setIsAuthChecking(false);
       }
-    }, 1800);
+    }, 4500);
 
     return () => {
       isMounted = false;
@@ -1280,7 +1364,12 @@ export default function App() {
       // If locking funds into vault as an expense, ensure user has available balance
       if (data.type === 'expense') {
         if (calculations.availableBalance <= 0 || data.amount > calculations.availableBalance) {
-          showToast('Saldo insuficiente para guardar neste cofre!', '⚠️');
+          showToast(
+            language === 'en-US'
+              ? 'Insufficient balance to save in this vault!'
+              : 'Saldo insuficiente para guardar neste cofre!',
+            '⚠️'
+          );
           triggerHaptic('warning');
           return;
         }
@@ -1380,7 +1469,12 @@ export default function App() {
     // Strict balance check: cannot deposit more than available balance (with tiny epsilon for float safety)
     const available = Math.round(calculations.availableBalance * 100) / 100;
     if (available <= 0 || safeAmount > (available + 0.0001)) {
-      showToast(`Saldo insuficiente (${formatCurrency(available, user.currency)})`, '⚠️');
+      showToast(
+        language === 'en-US'
+          ? `Insufficient balance (${formatCurrency(available, user.currency)})`
+          : `Saldo insuficiente (${formatCurrency(available, user.currency)})`,
+        '⚠️'
+      );
       triggerHaptic('warning');
       return;
     }
@@ -1690,9 +1784,9 @@ export default function App() {
   }) => {
     triggerHaptic('heavy');
     try {
-      const emailToDelete = user.email?.trim();
-      if (emailToDelete) {
-        await db.deleteFromCloud(emailToDelete, user, deletionConsent);
+      const identifierToDelete = (user.email || user.authId || user.id || '').trim();
+      if (identifierToDelete) {
+        await db.deleteFromCloud(identifierToDelete, user, deletionConsent);
       }
 
       // Sign out Firebase Auth and native Google session
@@ -1938,6 +2032,48 @@ export default function App() {
     showToast(isEn ? 'Transaction updated in your Activity! ✨' : 'Lançamento atualizado no seu extrato! ✨', '📝');
   };
 
+  // Handler: 1-Tap Quick Categorize for received transactions directly from notification
+  const handleQuickCategorizeReceive = (txId: string, categoryId: string) => {
+    const categoryObj = categories.find(c => c.id === categoryId);
+    setTransactions(prev =>
+      prev.map(tx => {
+        if (tx.id === txId || (tx.txHash && txId.includes(tx.txHash))) {
+          return {
+            ...tx,
+            categoryId,
+            description: tx.description.includes(':')
+              ? `Recebimento ${tx.tokenSymbol || 'USDC'}: ${tx.description.split(':')[1].trim()}`
+              : (categoryObj ? `${categoryObj.name}` : tx.description),
+            isOrganized: true,
+          };
+        }
+        return tx;
+      })
+    );
+
+    const currentProfileKey = getProfileStorageKey(user);
+    setTimeout(() => {
+      const updatedTxs = db.getTransactions(currentProfileKey);
+      const modified = updatedTxs.map(tx => {
+        if (tx.id === txId || (tx.txHash && txId.includes(tx.txHash))) {
+          return { ...tx, categoryId, isOrganized: true };
+        }
+        return tx;
+      });
+      void db.saveTransactions(modified, currentProfileKey);
+      if (user.isLoggedIn && user.email) {
+        void db.saveToCloud(user, categories, vaults, modified);
+      }
+    }, 50);
+
+    showToast(
+      isEn
+        ? `Categorized as ${categoryObj?.emoji || ''} ${categoryObj?.name || 'Category'}!`
+        : `Categorizado como ${categoryObj?.emoji || ''} ${categoryObj?.name || 'Categoria'}!`,
+      '🏷️'
+    );
+  };
+
   // Handler: Connect Google Account directly from profile/app settings
   const handleConnectGoogle = async () => {
     triggerHaptic('success');
@@ -2065,7 +2201,7 @@ export default function App() {
   if (!user.isLoggedIn) {
     return (
       <LoginScreen
-        onLoginSuccess={(updates, newCategories, newVaults, newTransactions) => {
+        onLoginSuccess={(updates, newCategories, newVaults, newTransactions, newlyCreatedWallet) => {
           const isSecurityActive = WebAuthnService.isDeviceSecurityEnabled(
             updates.deviceSecurityEnabled ?? (updates.appLockEnabled ?? false)
           );
@@ -2125,6 +2261,15 @@ export default function App() {
             refreshOnChainBalance(updated.walletAddress, updated.web3Network || 'base');
           }
 
+          if (newlyCreatedWallet && newlyCreatedWallet.address && newlyCreatedWallet.privateKey) {
+            setMandatoryBackupState({
+              isOpen: true,
+              publicAddress: newlyCreatedWallet.address,
+              privateKey: newlyCreatedWallet.privateKey,
+              mnemonic: newlyCreatedWallet.mnemonic,
+            });
+          }
+
           if (isSecurityActive) {
             WebAuthnService.setDeviceSecurityEnabled(true);
             WebAuthnService.setSessionUnlocked(false);
@@ -2172,12 +2317,22 @@ export default function App() {
               </div>
               <button
                 onClick={() => setToastMessage(null)}
-                className="text-emerald-900/60 hover:text-emerald-950 text-xs font-black p-1 hover:bg-emerald-300/40 rounded-lg transition-colors flex-shrink-0"
+                className="text-emerald-900/60 hover:text-emerald-950 text-xs font-black p-1 hover:bg-emerald-300/40 rounded-lg transition-colors flex-shrink-0 cursor-pointer"
               >
                 ✕
               </button>
             </div>
           </div>
+        )}
+
+        {/* Interactive 1-Tap Quick Categorize Toast for newly received transactions */}
+        {pendingQuickCategorizeTx && (
+          <QuickCategorizeReceiveToast
+            transaction={pendingQuickCategorizeTx}
+            categories={categories}
+            onSelectCategory={handleQuickCategorizeReceive}
+            onClose={() => setPendingQuickCategorizeTx(null)}
+          />
         )}
 
         {/* Sticky Header */}

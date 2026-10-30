@@ -337,10 +337,26 @@ export function mergeLocalAndCloudData(
       : resolvedAvatarUrl;
   }
 
+  // Active wallet resolution:
+  // If local already has a valid active wallet address (0x...), prioritize it to prevent
+  // displaying or reviving a stale/phantom wallet address from older cloud snapshots.
+  const isValidEthAddress = (addr?: string | null): addr is string =>
+    Boolean(addr && typeof addr === 'string' && /^0x[a-fA-F0-9]{40}$/.test(addr.trim()));
+
+  const resolvedWalletAddress =
+    (isValidEthAddress(local.walletAddress) ? local.walletAddress : undefined) ||
+    (isValidEthAddress(local.user?.walletAddress) ? local.user?.walletAddress : undefined) ||
+    (isValidEthAddress(cloud.walletAddress) ? cloud.walletAddress : undefined) ||
+    (isValidEthAddress(cloud.user?.walletAddress) ? cloud.user?.walletAddress : undefined) ||
+    local.walletAddress ||
+    cloud.walletAddress ||
+    '';
+
   return {
     user: {
       ...secondaryUser,
       ...primaryUser,
+      walletAddress: resolvedWalletAddress || primaryUser?.walletAddress || secondaryUser?.walletAddress,
       avatarUrl: resolvedAvatarUrl,
       hasCompletedOnboarding: Boolean(
         local.user?.hasCompletedOnboarding || cloud.user?.hasCompletedOnboarding
@@ -352,8 +368,8 @@ export function mergeLocalAndCloudData(
     onchainLedger: sortedLedger,
     contacts: sortedContacts,
     updatedAt: new Date(Math.max(localTime, cloudTime, Date.now())).toISOString(),
-    encryptedWalletBackup: cloud.encryptedWalletBackup || local.encryptedWalletBackup,
-    walletAddress: cloud.walletAddress || local.walletAddress,
+    encryptedWalletBackup: local.encryptedWalletBackup || cloud.encryptedWalletBackup,
+    walletAddress: resolvedWalletAddress,
     schemaVersion: Math.max(
       local.schemaVersion || 1,
       cloud.schemaVersion || 1,
@@ -457,24 +473,45 @@ export class FirebaseDatabaseService {
   async loadFromCloud(userIdOrEmail: string, email?: string, uid?: string): Promise<CloudUserData | null> {
     if (!firestoreDb || (!userIdOrEmail && !email && !uid)) return null;
     try {
+      // Ensure Firebase Auth token is attached to Firestore SDK before querying post-login
+      if (auth?.currentUser) {
+        try {
+          await auth.currentUser.getIdToken();
+        } catch {
+          // Proceed with cached session if offline
+        }
+      }
+
       const activeUid = uid || auth?.currentUser?.uid;
       const activeEmail = email || auth?.currentUser?.email || undefined;
       const candidates = getCandidateDocIds(userIdOrEmail, activeEmail, activeUid);
       const foundSnapshots: CloudUserData[] = [];
 
-      // 1. Direct read across all candidate collections (userData, users, cofreadmin_users)
+      // 1. Direct parallel read across all candidate collections (userData, users, cofreadmin_users)
+      const directReadTasks: Promise<CloudUserData | null>[] = [];
       for (const colName of CANDIDATE_USER_COLLECTIONS) {
         for (const candidateId of candidates) {
-          try {
-            const userRef = doc(firestoreDb, colName, candidateId);
-            const snap = await getDoc(userRef);
-            if (snap.exists()) {
-              const data = normalizeCloudUserData(snap.data());
-              foundSnapshots.push(data);
-            }
-          } catch (errDoc) {
-            // Continue search across other candidates
-          }
+          directReadTasks.push(
+            (async () => {
+              try {
+                const userRef = doc(firestoreDb, colName, candidateId);
+                const snap = await getDoc(userRef);
+                if (snap.exists()) {
+                  return normalizeCloudUserData(snap.data());
+                }
+              } catch {
+                // Continue search across other candidates
+              }
+              return null;
+            })()
+          );
+        }
+      }
+
+      const directResults = await Promise.all(directReadTasks);
+      for (const item of directResults) {
+        if (item) {
+          foundSnapshots.push(item);
         }
       }
 
@@ -606,8 +643,21 @@ export class FirebaseDatabaseService {
     if (!emailOrId && !user?.email) return false;
     if (!firestoreDb) return true;
     try {
-      const candidates = getCandidateDocIds(user?.authId || emailOrId, user?.email || emailOrId);
+      const activeUid = user?.authId || auth?.currentUser?.uid || user?.id;
+      const activeEmail = user?.email || (emailOrId.includes('@') ? emailOrId : undefined);
+      const candidates = getCandidateDocIds(emailOrId, activeEmail, activeUid);
 
+      const allDocIdsToDelete = new Set<string>(candidates);
+      if (activeUid) allDocIdsToDelete.add(activeUid);
+      if (user?.id) allDocIdsToDelete.add(user.id);
+      if (user?.email) allDocIdsToDelete.add(user.email);
+      if (emailOrId) allDocIdsToDelete.add(emailOrId);
+
+      const emailVariants = Array.from(
+        new Set([activeEmail, activeEmail?.toLowerCase(), emailOrId.includes('@') ? emailOrId.toLowerCase() : null].filter(Boolean) as string[])
+      );
+
+      // Archive LGPD Right to Erasure / Compliance Audit certificate in separate legal audit collection
       try {
         const rawIdentifier = (user?.email || emailOrId || 'unknown').trim().toLowerCase();
         const encoder = new TextEncoder();
@@ -659,18 +709,44 @@ export class FirebaseDatabaseService {
         console.warn('Aviso ao gravar log de conformidade legal:', auditErr);
       }
 
-      for (const candidateId of candidates) {
-        try {
-          const userRef = doc(firestoreDb, USERS_COLLECTION, candidateId);
-          await deleteDoc(userRef);
-        } catch {}
-      }
+      // Purge all user documents across all known legacy and current collections
+      for (const colName of CANDIDATE_USER_COLLECTIONS) {
+        // 1. Direct candidate ID deletion
+        for (const docId of allDocIdsToDelete) {
+          if (!docId) continue;
+          try {
+            await deleteDoc(doc(firestoreDb, colName, docId));
+          } catch {}
+        }
 
-      const fbUid = auth?.currentUser?.uid;
-      if (fbUid && /^[a-zA-Z0-9_-]{1,128}$/.test(fbUid)) {
-        try {
-          await deleteDoc(doc(firestoreDb, USERS_UID_COLLECTION, fbUid));
-        } catch {}
+        // 2. Query-based cleanup so no orphaned documents survive
+        for (const emailVar of emailVariants) {
+          try {
+            const qEmail = query(collection(firestoreDb, colName), where('email', '==', emailVar), limit(10));
+            const snap = await getDocs(qEmail);
+            for (const docSnap of snap.docs) {
+              try { await deleteDoc(docSnap.ref); } catch {}
+            }
+          } catch {}
+
+          try {
+            const qUserEmail = query(collection(firestoreDb, colName), where('user.email', '==', emailVar), limit(10));
+            const snap = await getDocs(qUserEmail);
+            for (const docSnap of snap.docs) {
+              try { await deleteDoc(docSnap.ref); } catch {}
+            }
+          } catch {}
+        }
+
+        if (activeUid) {
+          try {
+            const qUid = query(collection(firestoreDb, colName), where('authId', '==', activeUid), limit(10));
+            const snap = await getDocs(qUid);
+            for (const docSnap of snap.docs) {
+              try { await deleteDoc(docSnap.ref); } catch {}
+            }
+          } catch {}
+        }
       }
 
       return true;

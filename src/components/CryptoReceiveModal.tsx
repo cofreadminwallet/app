@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { X, Copy, Check, Share2, Download, Link2, ArrowLeftRight } from 'lucide-react';
+import { X, Copy, Check, Share2, Download, ArrowLeftRight } from 'lucide-react';
 import QRCode from 'qrcode';
 import { isAddress, getAddress } from 'viem';
 import { generateCryptoPaymentUri, generateShareablePaymentLink } from '../utils/cryptoAddressUtils';
@@ -55,7 +55,7 @@ const drawVaultVector = (
   ctx.fill();
   ctx.stroke();
 
-  // 4. Painel lateral lima (#B8F256)
+  // 4. Lime side panel (#B8F256)
   ctx.fillStyle = '#B8F256';
   ctx.strokeStyle = '#000000';
   ctx.lineWidth = 2.5;
@@ -112,7 +112,6 @@ export const CryptoReceiveModal: React.FC<CryptoReceiveModalProps> = ({
   const [receiveUnit, setReceiveUnit] = useState<'USDC' | 'BRL'>('USDC');
   const [memo, setMemo] = useState<string>('');
   const [copied, setCopied] = useState(false);
-  const [copiedLink, setCopiedLink] = useState(false);
   const [shared, setShared] = useState(false);
   const [downloaded, setDownloaded] = useState(false);
   const [localQrDataUrl, setLocalQrDataUrl] = useState<string>('');
@@ -126,7 +125,7 @@ export const CryptoReceiveModal: React.FC<CryptoReceiveModalProps> = ({
         return getAddress(rawAddress as `0x${string}`);
       }
     } catch {
-      // Ignora e usa rawAddress
+      // Ignore and fallback to rawAddress
     }
     return rawAddress;
   }, [rawAddress]);
@@ -707,52 +706,7 @@ export const CryptoReceiveModal: React.FC<CryptoReceiveModalProps> = ({
             </div>
           </div>
 
-          {/* Payment Link with Pre-filled Amount/Memo (Payment Request Style) */}
-          <div className="flex items-center gap-2 pt-0.5">
-            <button
-              type="button"
-              onClick={() => {
-                triggerHaptic('success');
-                navigator.clipboard.writeText(paymentLink);
-                setCopiedLink(true);
-                setTimeout(() => setCopiedLink(false), 2500);
-              }}
-              className="flex-1 py-2.5 px-3 bg-[#E0F2FE] hover:bg-sky-200 border-2 border-black rounded-xl font-['Outfit'] font-black text-xs text-sky-950 shadow-neo-xs btn-press flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
-              id="btn-copy-payment-request-link"
-            >
-              {copiedLink ? (
-                <>
-                  <Check className="w-3.5 h-3.5 text-emerald-700 stroke-[3]" />
-                  <span>{isEn ? 'Payment Link Copied!' : 'Link de Cobrança Copiado!'}</span>
-                </>
-              ) : (
-                <>
-                  <Link2 className="w-3.5 h-3.5 text-sky-900" />
-                  <span>
-                    {amountVal
-                      ? isEn
-                        ? `Copy Link ($${amountVal.toFixed(2)} USDC)`
-                        : `Copiar Link de Cobrança ($${amountVal.toFixed(2)})`
-                      : isEn
-                      ? 'Copy Payment Link'
-                      : 'Copiar Link de Pagamento'}
-                  </span>
-                </>
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={handleShareQrAndAddress}
-              className="py-2.5 px-3.5 bg-[#B8F256] hover:bg-[#A3E635] border-2 border-black rounded-xl font-['Outfit'] font-black text-xs text-black shadow-neo-xs btn-press flex items-center justify-center gap-1.5 cursor-pointer"
-              id="btn-share-payment-request-whatsapp"
-            >
-              <Share2 className="w-3.5 h-3.5" />
-              <span>{isEn ? 'Charge' : 'Cobrar'}</span>
-            </button>
-          </div>
-
-          {/* Aviso Direto */}
+          {/* Direct Network Notice */}
           <p className="text-[10px] text-neutral-500 font-medium text-center pt-0.5">
             {isEn ? (
               <>⚠️ Only accepts <strong>USDC</strong> on the <strong>Base</strong> network.</>

@@ -125,16 +125,18 @@ export class Web3Service {
         if (!userUid.startsWith('discord_')) {
           candidates.add(`discord_${userUid}`);
         } else {
-          candidates.add(userUid.slice('discord_'.length));
+          const strippedId = userUid.slice('discord_'.length);
+          // Only allow bare numeric Discord IDs (<discord_id>); never bare email strings (which belong to Google legacy)
+          if (strippedId && !strippedId.includes('@') && strippedId !== sanitizedEmail) {
+            candidates.add(strippedId);
+          }
         }
       }
       if (sanitizedEmail) {
         candidates.add(`discord_${sanitizedEmail}`);
-        candidates.add(sanitizedEmail);
       }
       if (cleanEmail) {
         candidates.add(`discord_${cleanEmail}`);
-        candidates.add(cleanEmail);
       }
       return Array.from(candidates).filter(Boolean);
     }
@@ -171,7 +173,7 @@ export class Web3Service {
     const account = mnemonicToAccount(mnemonic);
     const hdKey = account.getHdKey();
     if (!hdKey.privateKey) {
-      throw new Error('Falha crítica na derivação da chave privada a partir da mnemônica BIP-39.');
+      throw new Error('Critical failure deriving private key from BIP-39 mnemonic.');
     }
     const privateKey = toHex(hdKey.privateKey) as Hex;
     return {
@@ -318,8 +320,28 @@ export class Web3Service {
         if (encryptedMnemonic) {
           localStorage.setItem(`cofreadmin_mnem_${idKey}`, encryptedMnemonic);
         }
+
+        // Synchronously update any stored user profile in localStorage so initial boot never reads an outdated address
+        const scopedUserKey = `cofreadmin_user_${idKey}`;
+        const rawScoped = localStorage.getItem(scopedUserKey);
+        if (rawScoped) {
+          try {
+            const parsed = JSON.parse(rawScoped);
+            parsed.walletAddress = account.address;
+            localStorage.setItem(scopedUserKey, JSON.stringify(parsed));
+          } catch {}
+        }
       } catch {}
     }
+
+    try {
+      const rawGlobalUser = localStorage.getItem('cofreadmin_user');
+      if (rawGlobalUser) {
+        const parsed = JSON.parse(rawGlobalUser);
+        parsed.walletAddress = account.address;
+        localStorage.setItem('cofreadmin_user', JSON.stringify(parsed));
+      }
+    } catch {}
 
     return account.address;
   }
@@ -340,7 +362,31 @@ export class Web3Service {
       throw new Error('Identidade do usuário ausente. É necessário efetuar login para acessar a carteira.');
     }
 
-    const candidates = Web3Service.getIdentityCandidates(userEmail, userUid);
+    const isDiscordSession = Boolean(userUid && userUid.startsWith('discord_'));
+    const cleanEmail = (userEmail || '').trim().toLowerCase();
+    const sanitizedEmail = cleanEmail.replace(/[^a-zA-Z0-9_-]/g, '_');
+
+    // Cross-provider collision guard: detect if a Discord session on this browser accidentally cloned the Google wallet for the same email
+    let googleAddrOnDevice = '';
+    let googlePkCipherOnDevice = '';
+    if (isDiscordSession && sanitizedEmail) {
+      googleAddrOnDevice = (
+        localStorage.getItem(`cofreadmin_addr_google_${sanitizedEmail}`) ||
+        localStorage.getItem(`cofreadmin_addr_${sanitizedEmail}`) ||
+        ''
+      ).trim();
+      googlePkCipherOnDevice = (
+        localStorage.getItem(`cofreadmin_pk_google_${sanitizedEmail}`) ||
+        localStorage.getItem(`cofreadmin_pk_${sanitizedEmail}`) ||
+        ''
+      ).trim();
+    }
+
+    const candidates = Web3Service.getIdentityCandidates(
+      userEmail,
+      userUid,
+      isDiscordSession ? 'discord' : 'google'
+    );
 
     let rawStored: string | undefined = existingPrivateKey || undefined;
     if (!rawStored) {
@@ -359,6 +405,17 @@ export class Web3Service {
       if (addr) {
         cachedAddr = addr;
         break;
+      }
+    }
+
+    // If this Discord session holds an exact clone of the Google wallet on the same browser, discard the clone so Discord generates its own independent wallet
+    if (isDiscordSession && googleAddrOnDevice) {
+      if (cachedAddr && cachedAddr.toLowerCase() === googleAddrOnDevice.toLowerCase()) {
+        cachedAddr = '';
+        rawStored = undefined;
+      } else if (rawStored && googlePkCipherOnDevice && rawStored === googlePkCipherOnDevice) {
+        cachedAddr = '';
+        rawStored = undefined;
       }
     }
 
@@ -387,8 +444,17 @@ export class Web3Service {
         if (activePassphrase) {
           setSessionPassphrase(activePassphrase);
         }
+        // Check if decrypted key matches the Google wallet on this device during a Discord session
+        if (isDiscordSession && googleAddrOnDevice && resolvedPk && resolvedPk.startsWith('0x') && resolvedPk.length === 66) {
+          const derivedCheck = privateKeyToAccount(resolvedPk as Hex);
+          if (derivedCheck.address.toLowerCase() === googleAddrOnDevice.toLowerCase()) {
+            resolvedPk = '';
+            rawStored = undefined;
+            cachedAddr = '';
+          }
+        }
         // If cryptographic envelope requires upgrade to current vault version, re-encrypts transparently
-        if (needsVaultEnvelopeUpgrade(rawStored, Boolean(activePassphrase))) {
+        if (resolvedPk && needsVaultEnvelopeUpgrade(rawStored || '', Boolean(activePassphrase))) {
           await Web3Service.saveWalletCredentials({
             userEmail,
             userUid,
@@ -407,14 +473,24 @@ export class Web3Service {
     // CASE 2: Key directly provided for immediate local import/sync
     else if (rawStored && rawStored.startsWith('0x') && rawStored.length === 66) {
       resolvedPk = rawStored;
-      try {
-        await Web3Service.saveWalletCredentials({
-          userEmail,
-          userUid,
-          privateKey: resolvedPk,
-          passphrase: activePassphrase,
-        });
-      } catch {}
+      if (isDiscordSession && googleAddrOnDevice) {
+        const derivedCheck = privateKeyToAccount(resolvedPk as Hex);
+        if (derivedCheck.address.toLowerCase() === googleAddrOnDevice.toLowerCase()) {
+          resolvedPk = '';
+          rawStored = undefined;
+          cachedAddr = '';
+        }
+      }
+      if (resolvedPk) {
+        try {
+          await Web3Service.saveWalletCredentials({
+            userEmail,
+            userUid,
+            privateKey: resolvedPk,
+            passphrase: activePassphrase,
+          });
+        } catch {}
+      }
     }
 
     // SECURITY RULE: If wallet record was present but key could not be unlocked,
@@ -895,7 +971,7 @@ export class Web3Service {
 
     if (usdcBalance < amount) {
       throw new Error(
-        `Saldo insuficiente de USDC na blockchain Base. Saldo na carteira (${account.address.slice(0, 6)}...${account.address.slice(-4)}): $${usdcBalance.toFixed(2)} USDC, valor a transferir: $${amount.toFixed(2)} USDC.`
+        `Insufficient USDC balance on Base blockchain. Wallet balance (${account.address.slice(0, 6)}...${account.address.slice(-4)}): $${usdcBalance.toFixed(2)} USDC, amount to transfer: $${amount.toFixed(2)} USDC.`
       );
     }
 
@@ -905,10 +981,10 @@ export class Web3Service {
     const rawRelayerAddress = (paymasterConfig.relayerAddress || '0x31b7BafB5Bf4ab3D892610Ae7C9cA45BdBc45233').toLowerCase();
 
     if (!ALLOWED_DEV_FEE_RECIPIENTS.includes(rawDevFeeRecipient)) {
-      throw new Error(`Endereço de destino da taxa devFeeRecipient não autorizado pelo cliente: ${rawDevFeeRecipient}`);
+      throw new Error(`Unauthorized fee recipient address: ${rawDevFeeRecipient}`);
     }
     if (!ALLOWED_RELAYERS.includes(rawRelayerAddress)) {
-      throw new Error(`Endereço de relayer despachante não autorizado pelo cliente: ${rawRelayerAddress}`);
+      throw new Error(`Unauthorized relayer address: ${rawRelayerAddress}`);
     }
 
     const devFeeRecipient = rawDevFeeRecipient as `0x${string}`;
@@ -920,18 +996,18 @@ export class Web3Service {
 
     // If provided fee exceeds regulatory ceiling (with max 5% rounding tolerance)
     if (effectiveDevFee > maxCalculatedProtocolFee * 1.05) {
-      throw new Error(`Taxa de protocolo solicitada ($${effectiveDevFee.toFixed(4)} USDC) excede o teto máximo permitido.`);
+      throw new Error(`Requested protocol fee ($${effectiveDevFee.toFixed(4)} USDC) exceeds maximum allowed ceiling.`);
     }
 
     const effectiveGasFee = typeof gasFee === 'number' && gasFee > 0 ? gasFee : 0.02;
     if (effectiveGasFee > MAX_ALLOWED_GAS_FEE_USDC) {
-      throw new Error(`Taxa de gás estimada ($${effectiveGasFee.toFixed(4)} USDC) excede o teto de segurança ($${MAX_ALLOWED_GAS_FEE_USDC} USDC). Transação cancelada para proteger seus fundos.`);
+      throw new Error(`Estimated gas fee ($${effectiveGasFee.toFixed(4)} USDC) exceeds safety ceiling ($${MAX_ALLOWED_GAS_FEE_USDC} USDC). Transaction cancelled to protect funds.`);
     }
 
     const totalRequiredUsdc = amount + effectiveDevFee + effectiveGasFee;
     if (usdcBalance + 0.000001 < totalRequiredUsdc) {
       throw new Error(
-        `Saldo insuficiente para cobrir valor + taxas na rede Base. Saldo atual: $${usdcBalance.toFixed(4)} USDC | Necessário: $${totalRequiredUsdc.toFixed(4)} USDC ($${amount.toFixed(4)} envio + $${effectiveDevFee.toFixed(4)} protocolo + $${effectiveGasFee.toFixed(4)} gás).`
+        `Insufficient balance to cover amount + network fees on Base network. Current balance: $${usdcBalance.toFixed(4)} USDC | Required: $${totalRequiredUsdc.toFixed(4)} USDC ($${amount.toFixed(4)} transfer + $${effectiveDevFee.toFixed(4)} protocol + $${effectiveGasFee.toFixed(4)} gas).`
       );
     }
 

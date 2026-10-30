@@ -12,7 +12,7 @@ import { db } from '../services';
  */
 function getStorageKey(userEmailOrId: string): string {
   if (!userEmailOrId) {
-    throw new Error('Identificador de usuário inválido para acessar a carteira.');
+    throw new Error('Invalid user identifier for wallet access.');
   }
   const cleanId = userEmailOrId.trim().toLowerCase().replace(/[^a-zA-Z0-9_-]/g, '_');
   return `cofreadmin_pk_${cleanId}`;
@@ -45,7 +45,7 @@ export async function getOrCreatePrivateKey(
 ): Promise<string> {
   if (typeof window === 'undefined') return '';
   if (!userEmailOrId) {
-    throw new Error('Identidade do usuário ausente. Operação bloqueada.');
+    throw new Error('Missing user identity. Operation blocked.');
   }
 
   const storageKey = getStorageKey(userEmailOrId);

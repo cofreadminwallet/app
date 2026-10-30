@@ -102,12 +102,22 @@ export const CryptoSendModal: React.FC<CryptoSendModalProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [settlementStep, setSettlementStep] = useState<string>('');
   const [receipt, setReceipt] = useState<CryptoReceipt | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [modalNotice, setModalNotice] = useState<{ message: string; type: 'warning' | 'error' } | null>(null);
   const [copiedReceipt, setCopiedReceipt] = useState(false);
   const [copiedAddress, setCopiedAddress] = useState(false);
   const [isSavedTag, setIsSavedTag] = useState(false);
   const [isSharingReceipt, setIsSharingReceipt] = useState(false);
   const [sharedReceiptSuccess, setSharedReceiptSuccess] = useState(false);
+
+  const setWarningNotice = (msg: string) => {
+    setModalNotice({ message: msg, type: 'warning' });
+  };
+  const setErrorNotice = (msg: string) => {
+    setModalNotice({ message: msg, type: 'error' });
+  };
+  const clearNotice = () => {
+    setModalNotice(null);
+  };
 
   // Recipient Trust & Contact Book state
   const [trustStatus, setTrustStatus] = useState<RecipientTrustStatus>({
@@ -170,7 +180,7 @@ export const CryptoSendModal: React.FC<CryptoSendModalProps> = ({
       setExpenseTitle(cryptoData.label || '');
       setReceipt(null);
       setCreatedTxId(null);
-      setErrorMessage(null);
+      clearNotice();
       setIsProcessing(false);
       setIsSavedTag(false);
       setModalStep('amount');
@@ -203,9 +213,9 @@ export const CryptoSendModal: React.FC<CryptoSendModalProps> = ({
       // Check recipient address network compatibility
       const val = validateCryptoInput(cryptoData.address, 'address');
       if (!val.isValid) {
-        setErrorMessage(val.error || 'Endereço não compatível. Solicite um Endereço da rede/Base.');
+        setWarningNotice(val.error || (isEn ? 'Incompatible address. Please enter a valid Base network address.' : 'Endereço não compatível. Solicite um Endereço da rede/Base.'));
       } else {
-        setErrorMessage(null);
+        clearNotice();
       }
 
       // Check device biometrics status
@@ -272,42 +282,59 @@ export const CryptoSendModal: React.FC<CryptoSendModalProps> = ({
         setAmountStr(currentAmount.toFixed(2));
       }
     }
-    setErrorMessage(null);
+    clearNotice();
   };
 
   // STEP 1 -> STEP 2: Query network for live gas & fees
   const handleProceedToReview = async () => {
     if (!recipientValidation.isValid) {
       triggerHaptic('warning');
-      setErrorMessage(recipientValidation.error || 'Endereço não compatível. Solicite um Endereço da rede/Base.');
+      setWarningNotice(
+        recipientValidation.error ||
+          (isEn
+            ? 'Incompatible address. Please enter a valid Base network address.'
+            : 'Endereço não compatível. Solicite um Endereço da rede/Base.')
+      );
       return;
     }
 
     if (cryptoData.address.toLowerCase() === senderAddress.toLowerCase()) {
       triggerHaptic('warning');
-      setErrorMessage('O endereço de destino é o seu próprio endereço. Não é permitido enviar para si mesmo (evita cobrança desnecessária de taxas).');
+      setWarningNotice(
+        isEn
+          ? 'Destination address is your own address. Sending to yourself is not permitted.'
+          : 'O endereço de destino é o seu próprio endereço. Não é permitido enviar para si mesmo (evita cobrança desnecessária de taxas).'
+      );
       return;
     }
 
     if (!isAmountValid) {
       triggerHaptic('warning');
-      setErrorMessage('Digite uma quantia válida em USDC para prosseguir.');
+      setWarningNotice(
+        isEn ? 'Enter a valid amount in USDC to proceed.' : 'Digite uma quantia válida em USDC para prosseguir.'
+      );
       return;
     }
 
     if (currentAmount > userBalanceUSDC) {
       triggerHaptic('warning');
       if (resolvedLockedUSDC > 0 && currentAmount <= resolvedTotalUSDC) {
-        setErrorMessage(
-          `Saldo livre insuficiente (${formatBreakdownValue(userBalanceUSDC)}). Você possui ${formatBreakdownValue(resolvedLockedUSDC)} protegido nos seus cofres.`
+        setWarningNotice(
+          isEn
+            ? `Insufficient free balance (${formatBreakdownValue(userBalanceUSDC)}). You have ${formatBreakdownValue(resolvedLockedUSDC)} protected in your vaults.`
+            : `Saldo livre insuficiente (${formatBreakdownValue(userBalanceUSDC)}). Você possui ${formatBreakdownValue(resolvedLockedUSDC)} protegido nos seus cofres.`
         );
       } else {
-        setErrorMessage(`Saldo livre insuficiente. Você possui ${formatBreakdownValue(userBalanceUSDC)} disponível.`);
+        setWarningNotice(
+          isEn
+            ? `Insufficient free balance. You have ${formatBreakdownValue(userBalanceUSDC)} available.`
+            : `Saldo livre insuficiente. Você possui ${formatBreakdownValue(userBalanceUSDC)} disponível.`
+        );
       }
       return;
     }
 
-    setErrorMessage(null);
+    clearNotice();
     setIsEstimatingGas(true);
     triggerHaptic('medium');
 
@@ -322,8 +349,10 @@ export const CryptoSendModal: React.FC<CryptoSendModalProps> = ({
 
       const totalRequired = currentAmount + feeBreakdown.feeAmount + estimate.gasFeeUsd;
       if (userBalanceUSDC < totalRequired) {
-        setErrorMessage(
-          `Saldo insuficiente para cobrir envio + taxas da rede ($${totalRequired.toFixed(2)} USDC necessários, saldo atual: $${userBalanceUSDC.toFixed(2)}).`
+        setWarningNotice(
+          isEn
+            ? `Insufficient balance to cover transfer + network fees ($${totalRequired.toFixed(2)} USDC required, current balance: $${userBalanceUSDC.toFixed(2)}).`
+            : `Saldo insuficiente para cobrir envio + taxas da rede ($${totalRequired.toFixed(2)} USDC necessários, saldo atual: $${userBalanceUSDC.toFixed(2)}).`
         );
         setIsEstimatingGas(false);
         return;
@@ -390,16 +419,16 @@ export const CryptoSendModal: React.FC<CryptoSendModalProps> = ({
   const handleConfirmSend = async () => {
     if (!recipientValidation.isValid) {
       triggerHaptic('warning');
-      setErrorMessage(
+      setWarningNotice(
         recipientValidation.error ||
-        (isEn ? 'Incompatible address. Please enter a valid Base network address.' : 'Endereço não compatível. Solicite um Endereço da rede/Base.')
+          (isEn ? 'Incompatible address. Please enter a valid Base network address.' : 'Endereço não compatível. Solicite um Endereço da rede/Base.')
       );
       return;
     }
 
     if (cryptoData.address.toLowerCase() === senderAddress.toLowerCase()) {
       triggerHaptic('warning');
-      setErrorMessage(
+      setWarningNotice(
         isEn
           ? 'Destination address is your own address. Sending to yourself is not permitted.'
           : 'O endereço de destino é o seu próprio endereço. Não é permitido enviar para si mesmo.'
@@ -409,14 +438,14 @@ export const CryptoSendModal: React.FC<CryptoSendModalProps> = ({
 
     if (!isAmountValid) {
       triggerHaptic('warning');
-      setErrorMessage(isEn ? 'Enter a valid amount to send in USDC.' : 'Digite uma quantia válida para enviar em USDC.');
+      setWarningNotice(isEn ? 'Enter a valid amount to send in USDC.' : 'Digite uma quantia válida para enviar em USDC.');
       return;
     }
 
     // High-Value Security Guard: Require explicit user confirmation for high-value transfers
     if (isHighValue && (!highValueConfirmed || highValueCountdown > 0)) {
       triggerHaptic('warning');
-      setErrorMessage(
+      setWarningNotice(
         isEn
           ? 'Please confirm the security check for large amounts before proceeding.'
           : 'Confirme a verificação de segurança para valores expressivos antes de prosseguir.'
@@ -424,7 +453,7 @@ export const CryptoSendModal: React.FC<CryptoSendModalProps> = ({
       return;
     }
 
-    setErrorMessage(null);
+    clearNotice();
     setIsProcessing(true);
     triggerHaptic('medium');
 
@@ -451,7 +480,7 @@ export const CryptoSendModal: React.FC<CryptoSendModalProps> = ({
     if (userBalanceUSDC < activeTotalDebit) {
       setIsProcessing(false);
       triggerHaptic('warning');
-      setErrorMessage(
+      setWarningNotice(
         isEn
           ? `Insufficient USDC balance for total of $${formatCryptoAmount(activeTotalDebit)} (Current balance: $${userBalanceUSDC.toFixed(2)}).`
           : `Saldo insuficiente em USDC para cobrir o total de $${formatCryptoAmount(activeTotalDebit)} (Saldo atual: $${userBalanceUSDC.toFixed(2)}).`
@@ -476,7 +505,7 @@ export const CryptoSendModal: React.FC<CryptoSendModalProps> = ({
         if (!authResult.success) {
           if (authResult.cancelled) {
             setIsProcessing(false);
-            setErrorMessage(isEn ? 'Biometric validation cancelled on device.' : 'Autorização biométrica cancelada no aparelho.');
+            setWarningNotice(isEn ? 'Biometric validation cancelled on device.' : 'Autorização biométrica cancelada no aparelho.');
             return;
           }
           throw new Error(authResult.message || (isEn ? 'Device security check failed.' : 'Falha na validação de segurança do celular.'));
@@ -531,7 +560,17 @@ export const CryptoSendModal: React.FC<CryptoSendModalProps> = ({
       console.error('Crypto transfer error:', err);
       setIsProcessing(false);
       triggerHaptic('warning');
-      setErrorMessage(err.message || (isEn ? 'Error processing transfer.' : 'Erro ao processar a transferência.'));
+      const rawMsg = String(err?.message || '');
+      const isBalanceErr = /insuficiente|insufficient/i.test(rawMsg);
+      if (isBalanceErr) {
+        setWarningNotice(
+          isEn
+            ? `Insufficient balance on Base network to execute this transaction ($${formatCryptoAmount(activeTotalDebit)} USDC required, current: $${userBalanceUSDC.toFixed(2)}).`
+            : `Saldo insuficiente na rede Base para executar esta transação ($${formatCryptoAmount(activeTotalDebit)} USDC necessários, saldo atual: $${userBalanceUSDC.toFixed(2)}).`
+        );
+      } else {
+        setErrorNotice(err.message || (isEn ? 'Error processing transfer.' : 'Erro ao processar a transferência.'));
+      }
     }
   };
 
@@ -852,7 +891,7 @@ export const CryptoSendModal: React.FC<CryptoSendModalProps> = ({
                 onClick={() => {
                   triggerHaptic('light');
                   setModalStep('amount');
-                  setErrorMessage(null);
+                  clearNotice();
                 }}
                 className="w-8 h-8 rounded-full border-2 border-black bg-white flex items-center justify-center hover:bg-neutral-100 btn-press cursor-pointer"
                 title={isEn ? "Back" : "Voltar"}
@@ -1034,7 +1073,7 @@ export const CryptoSendModal: React.FC<CryptoSendModalProps> = ({
                   value={amountStr}
                   onChange={(e) => {
                     setAmountStr(e.target.value);
-                    setErrorMessage(null);
+                    clearNotice();
                   }}
                   placeholder="0.00"
                   className="w-full bg-transparent font-['Outfit'] font-black text-3xl text-black focus:outline-none placeholder:text-neutral-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -1075,33 +1114,45 @@ export const CryptoSendModal: React.FC<CryptoSendModalProps> = ({
               </div>
             </div>
 
-            {/* Error banner */}
-            {errorMessage && (
-              <div className="p-2.5 bg-[#FFE4E6] border-2 border-rose-500 rounded-xl space-y-1.5 text-xs text-rose-950 font-bold animate-in fade-in">
+            {/* Warning or Error banner */}
+            {modalNotice && (
+              <div
+                className={`p-2.5 rounded-xl space-y-1.5 text-xs font-bold border-2 animate-in fade-in ${
+                  modalNotice.type === 'warning'
+                    ? 'bg-[#FEF3C7] border-amber-400 text-amber-950'
+                    : 'bg-[#FFE4E6] border-rose-500 text-rose-950'
+                }`}
+              >
                 <div className="flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-rose-600 flex-shrink-0" />
-                  <span>{errorMessage}</span>
+                  <AlertTriangle
+                    className={`w-4 h-4 flex-shrink-0 ${
+                      modalNotice.type === 'warning' ? 'text-amber-700' : 'text-rose-600'
+                    }`}
+                  />
+                  <span>{modalNotice.message}</span>
                 </div>
-                <div className="flex justify-end pt-1 border-t border-rose-200">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      triggerHaptic('light');
-                      openSupportEmail({
-                        walletAddress: senderAddress,
-                        userEmail,
-                        errorMessage: isEn
-                          ? `Send error: ${errorMessage} (Amount: ${currentAmount} USDC, Destination: ${cryptoData?.address})`
-                          : `Erro no envio: ${errorMessage} (Valor: ${currentAmount} USDC, Destino: ${cryptoData?.address})`,
-                        actionContext: isEn ? 'USDC Send Failure (Step 1)' : 'Falha no envio de USDC (Etapa 1)',
-                        language,
-                      });
-                    }}
-                    className="text-[11px] font-bold text-rose-700 hover:text-rose-900 underline flex items-center gap-1 cursor-pointer"
-                  >
-                    <span>{isEn ? 'Report error to support' : 'Relatar erro ao suporte'}</span>
-                  </button>
-                </div>
+                {modalNotice.type === 'error' && (
+                  <div className="flex justify-end pt-1 border-t border-rose-200">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        triggerHaptic('light');
+                        openSupportEmail({
+                          walletAddress: senderAddress,
+                          userEmail,
+                          errorMessage: isEn
+                            ? `Send error: ${modalNotice.message} (Amount: ${currentAmount} USDC, Destination: ${cryptoData?.address})`
+                            : `Erro no envio: ${modalNotice.message} (Valor: ${currentAmount} USDC, Destino: ${cryptoData?.address})`,
+                          actionContext: isEn ? 'USDC Send Failure (Step 1)' : 'Falha no envio de USDC (Etapa 1)',
+                          language,
+                        });
+                      }}
+                      className="text-[11px] font-bold text-rose-700 hover:text-rose-900 underline flex items-center gap-1 cursor-pointer"
+                    >
+                      <span>{isEn ? 'Report error to support' : 'Relatar erro ao suporte'}</span>
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
@@ -1261,33 +1312,45 @@ export const CryptoSendModal: React.FC<CryptoSendModalProps> = ({
               </div>
             )}
 
-            {/* Error banner */}
-            {errorMessage && (
-              <div className="p-2.5 bg-[#FFE4E6] border-2 border-rose-500 rounded-xl space-y-1.5 text-xs text-rose-950 font-bold animate-in fade-in">
+            {/* Warning or Error banner */}
+            {modalNotice && (
+              <div
+                className={`p-2.5 rounded-xl space-y-1.5 text-xs font-bold border-2 animate-in fade-in ${
+                  modalNotice.type === 'warning'
+                    ? 'bg-[#FEF3C7] border-amber-400 text-amber-950'
+                    : 'bg-[#FFE4E6] border-rose-500 text-rose-950'
+                }`}
+              >
                 <div className="flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-rose-600 flex-shrink-0" />
-                  <span>{errorMessage}</span>
+                  <AlertTriangle
+                    className={`w-4 h-4 flex-shrink-0 ${
+                      modalNotice.type === 'warning' ? 'text-amber-700' : 'text-rose-600'
+                    }`}
+                  />
+                  <span>{modalNotice.message}</span>
                 </div>
-                <div className="flex justify-end pt-1 border-t border-rose-200">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      triggerHaptic('light');
-                      openSupportEmail({
-                        walletAddress: senderAddress,
-                        userEmail,
-                        errorMessage: isEn
-                          ? `Settlement error: ${errorMessage} (Amount: ${currentAmount} USDC, Destination: ${cryptoData?.address})`
-                          : `Erro na liquidação: ${errorMessage} (Valor: ${currentAmount} USDC, Destino: ${cryptoData?.address})`,
-                        actionContext: isEn ? 'On-chain Settlement Failure (Step 2)' : 'Falha na liquidação on-chain (Etapa 2)',
-                        language,
-                      });
-                    }}
-                    className="text-[11px] font-bold text-rose-700 hover:text-rose-900 underline flex items-center gap-1 cursor-pointer"
-                  >
-                    <span>{isEn ? 'Report error to support' : 'Relatar erro ao suporte'}</span>
-                  </button>
-                </div>
+                {modalNotice.type === 'error' && (
+                  <div className="flex justify-end pt-1 border-t border-rose-200">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        triggerHaptic('light');
+                        openSupportEmail({
+                          walletAddress: senderAddress,
+                          userEmail,
+                          errorMessage: isEn
+                            ? `Settlement error: ${modalNotice.message} (Amount: ${currentAmount} USDC, Destination: ${cryptoData?.address})`
+                            : `Erro na liquidação: ${modalNotice.message} (Valor: ${currentAmount} USDC, Destino: ${cryptoData?.address})`,
+                          actionContext: isEn ? 'On-chain Settlement Failure (Step 2)' : 'Falha na liquidação on-chain (Etapa 2)',
+                          language,
+                        });
+                      }}
+                      className="text-[11px] font-bold text-rose-700 hover:text-rose-900 underline flex items-center gap-1 cursor-pointer"
+                    >
+                      <span>{isEn ? 'Report error to support' : 'Relatar erro ao suporte'}</span>
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
