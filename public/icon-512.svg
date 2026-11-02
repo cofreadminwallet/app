@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Background Card Subtle Neo-Brutalist Shadow -->
+    <filter id="cardShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="14" dy="14" stdDeviation="0" flood-color="#000000" />
+    </filter>
+    
+    <!-- Vault Body Shadow -->
+    <filter id="vaultShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="10" dy="10" stdDeviation="0" flood-color="#000000" />
+    </filter>
+
+    <!-- Vault Body Purple Gradient (from #9333EA to #6B21A8) -->
+    <linearGradient id="vaultGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#9333EA" />
+      <stop offset="100%" stop-color="#6B21A8" />
+    </linearGradient>
+
+    <!-- Door Dial Rim Inset Gradient -->
+    <linearGradient id="dialGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#D8B4FE" />
+      <stop offset="100%" stop-color="#A855F7" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background App Card: Neo-Brutalist Soft Lime canvas (#F4F6FB or Brand Green) with thick black border -->
+  <rect x="28" y="28" width="456" height="456" rx="96" fill="#F4F6FB" stroke="#000000" stroke-width="20" filter="url(#cardShadow)" />
+
+  <!-- Inner Sparkle Accent (Top-Left) -->
+  <path d="M 96 68 Q 96 92 120 92 Q 96 92 96 116 Q 96 92 72 92 Q 96 92 96 68 Z" fill="#9333EA" stroke="#000000" stroke-width="4" />
+
+  <!-- ==================== MAIN VAULT / COFRE BODY ==================== -->
+  <g filter="url(#vaultShadow)">
+    <!-- Main Vault Box: Rich Purple Rounded Body with thick border -->
+    <rect x="92" y="112" width="280" height="280" rx="52" fill="url(#vaultGradient)" stroke="#000000" stroke-width="18" />
+
+    <!-- Top Vault Highlight Bar (Glass shimmer) -->
+    <rect x="124" y="128" width="216" height="14" rx="7" fill="#E9D5FF" opacity="0.45" />
+
+    <!-- Left Vault Hinges (Solid Dark Purple with black border) -->
+    <rect x="80" y="160" width="22" height="42" rx="6" fill="#581C87" stroke="#000000" stroke-width="12" />
+    <rect x="80" y="300" width="22" height="42" rx="6" fill="#581C87" stroke="#000000" stroke-width="12" />
+
+    <!-- Safe Door Inner Recess Ring -->
+    <circle cx="232" cy="252" r="92" fill="#581C87" stroke="#000000" stroke-width="12" />
+
+    <!-- Safe Door Handle / Wheel Ring (#C084FC) -->
+    <circle cx="232" cy="252" r="76" fill="url(#dialGradient)" stroke="#000000" stroke-width="14" />
+
+    <!-- Safe Wheel Spokes (Black Cross rotation 45deg) -->
+    <line x1="172" y1="192" x2="292" y2="312" stroke="#000000" stroke-width="12" stroke-linecap="round" />
+    <line x1="292" y1="192" x2="172" y2="312" stroke="#000000" stroke-width="12" stroke-linecap="round" />
+    <line x1="232" y1="176" x2="232" y2="328" stroke="#000000" stroke-width="8" stroke-linecap="round" />
+    <line x1="156" y1="252" x2="308" y2="252" stroke="#000000" stroke-width="8" stroke-linecap="round" />
+
+    <!-- Inner Wheel Center Core -->
+    <circle cx="232" cy="252" r="32" fill="#3B0764" stroke="#000000" stroke-width="12" />
+    <circle cx="232" cy="252" r="14" fill="#B8F256" stroke="#000000" stroke-width="6" />
+
+    <!-- Keyhole / Dial Center Dot -->
+    <circle cx="232" cy="252" r="4" fill="#000000" />
+  </g>
+
+  <!-- ==================== LIME ADMIN EQUALIZER / SLIDERS PANEL ==================== -->
+  <!-- Connected to right edge of vault just like in CofreLogo.tsx -->
+  <g>
+    <!-- Slider Panel Base -->
+    <rect x="360" y="148" width="62" height="208" rx="20" fill="#B8F256" stroke="#000000" stroke-width="16" filter="url(#vaultShadow)" />
+
+    <!-- Slider Track 1 & Knob (Top) -->
+    <line x1="391" y1="176" x2="391" y2="204" stroke="#000000" stroke-width="6" stroke-linecap="round" opacity="0.3" />
+    <rect x="375" y="174" width="32" height="14" rx="7" fill="#000000" />
+    <circle cx="391" cy="181" r="2.5" fill="#B8F256" />
+
+    <!-- Slider Track 2 & Knob (Middle - Offset right) -->
+    <line x1="391" y1="232" x2="391" y2="264" stroke="#000000" stroke-width="6" stroke-linecap="round" opacity="0.3" />
+    <rect x="382" y="244" width="32" height="14" rx="7" fill="#000000" />
+    <circle cx="398" cy="251" r="2.5" fill="#B8F256" />
+
+    <!-- Slider Track 3 & Knob (Bottom - Offset left) -->
+    <line x1="391" y1="294" x2="391" y2="326" stroke="#000000" stroke-width="6" stroke-linecap="round" opacity="0.3" />
+    <rect x="368" y="306" width="32" height="14" rx="7" fill="#000000" />
+    <circle cx="384" cy="313" r="2.5" fill="#B8F256" />
+  </g>
+
+  <!-- Neo-brutalist Little Corner Sparkle (Bottom-Right) -->
+  <path d="M 424 400 Q 424 416 440 416 Q 424 416 424 432 Q 424 416 408 416 Q 424 416 424 400 Z" fill="#B8F256" stroke="#000000" stroke-width="4" />
+</svg>
