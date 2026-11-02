@@ -1,0 +1,21 @@
+# Firebase App Hosting Configuration for CofreAdmin
+# Credentials and secret keys are securely managed via environment variables
+# in the Firebase App Hosting settings panel, keeping the repository 100% free of sensitive data.
+
+runConfig:
+  minInstances: 0
+  maxInstances: 5
+  concurrency: 80
+  cpu: 1
+  memoryMiB: 1024
+
+scripts:
+  buildCommand: npm run build
+  runCommand: npm run start
+
+env:
+  - variable: NODE_ENV
+    value: production
+    availability:
+      - BUILD
+      - RUNTIME
