@@ -172,7 +172,31 @@ Para implementações self-hosted ou rebranding institucional, você pode person
 | `VITE_SUPPORT_EMAIL` | `cofreadminwallet@gmail.com` | Altera o e-mail oficial de suporte nas Configurações e nos links automáticos de diagnóstico |
 | `VITE_FEEDBACK_URL` | `https://forms.gle/MBpyniv5zf795wi97` | Altera a URL de destino do botão **Feedback** em Configurações |
 
-### 2. Mapeamento nos Arquivos Fonte
+### 2. Personalização de Logotipo, Nome da Aplicação e Ativos Visuais em Código
+
+Caso deseje alterar a identidade visual (*rebranding*) ou criar uma versão própria (*white-label*), este é o mapeamento técnico exato do código-fonte:
+
+- **Logotipo Visual do App e Ícone do Cofre ([`src/components/CofreLogo.tsx`](./src/components/CofreLogo.tsx)):**
+  - **Ícone do Logotipo:** No aplicativo em execução, o logotipo **não é uma imagem estática**; ele é renderizado programaticamente via React e Tailwind CSS. O corpo 3D Neo-Brutalista em gradiente roxo, o volante da porta giratória e o painel equalizador verde-limão são desenhados diretamente em JSX. É possível alterar as cores, o desenho ou substituir o bloco por um vetor SVG próprio ou tag `<img>`.
+  - **Tipografia da Marca:** Os textos `"Cofre"` (preto) e `"Admin"` (badge verde-limão) estão definidos em `CofreLogo.tsx`.
+  - **Slogans Bilíngues:** Os subtítulos nos idiomas `en-US` (*"Own your money. Be the admin."*) e `pt-BR` (*"Seja o admin da sua grana."*) são alternados em `CofreLogo.tsx`.
+  - **Componente de Emoji da Marca (`CofreEmoji`):** Renderiza o vetor [`public/cofre-emoji.svg`](./public/cofre-emoji.svg).
+- **Nome da Marca no Cabeçalho Superior ([`src/components/Header.tsx`](./src/components/Header.tsx)):**
+  - Renderiza o título da aplicação exibido na barra superior ao lado do avatar do usuário autenticado.
+- **Título da Aplicação, Metatags SEO e Cards OpenGraph ([`index.html`](./index.html)):**
+  - **Título da Página:** `<title>CofreAdmin — Self-Custodial Web3 Personal Finance</title>`.
+  - **Metatags e Descrições:** `<meta name="description">`, `<meta name="keywords">`, `<meta name="application-name">` e `<meta name="apple-mobile-web-app-title">`.
+  - **Compartilhamento Social (OpenGraph):** `og:site_name`, `og:title`, `og:description` e `og:image`.
+- **Manifesto de Instalação PWA ([`public/manifest.json`](./public/manifest.json)):**
+  - Define o nome exibido no dispositivo (`name` e `short_name`), descrição e comportamento de abertura em tela cheia para celulares e computadores.
+- **Ícones do Sistema, Favicons e Ativos em Tempo de Execução ([`public/`](./public/)):**
+  - **Favicon do Navegador:** [`public/favicon.svg`](./public/favicon.svg).
+  - **Ícone Apple / Cabeçalho de Extrato PDF:** [`public/apple-touch-icon.png`](./public/apple-touch-icon.png) (carregado também pelo motor de relatórios em [`src/utils/exportPdf.ts`](./src/utils/exportPdf.ts)).
+  - **Ícones PWA e Notificações Push:** [`public/icon-192.png`](./public/icon-192.png) e [`public/icon-512.png`](./public/icon-512.png) (utilizados pelo [`public/sw.js`](./public/sw.js) e pelo [`src/services/notificationService.ts`](./src/services/notificationService.ts)).
+  - **Cards de Compartilhamento Social:** [`public/cofreadmin-share-card.png`](./public/cofreadmin-share-card.png) e [`public/cofreadmin-share-card-en.png`](./public/cofreadmin-share-card-en.png) (enviados nativamente via WhatsApp / Web Share em [`src/App.tsx`](./src/App.tsx)).
+  - *(Nota: O arquivo `./public/icon48x48.png` é apenas uma miniatura decorativa para o cabeçalho dos arquivos Markdown do README, sem qualquer interferência no código do aplicativo).*
+
+### 3. Mapeamento nos Arquivos Fonte
 
 Caso deseje atualizar parâmetros fixos diretamente no código-fonte:
 

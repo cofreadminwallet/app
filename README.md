@@ -173,7 +173,31 @@ If you are self-hosting or rebranding the application, you can customize the con
 | `VITE_SUPPORT_EMAIL` | `cofreadminwallet@gmail.com` | Changes the support email linked in Settings and diagnostic mailto links |
 | `VITE_FEEDBACK_URL` | `https://forms.gle/MBpyniv5zf795wi97` | Changes the destination of the **Feedback** button in Settings |
 
-### 2. Via Source Files
+### 2. Customizing App Logo, Title & Visual Assets in Code
+
+If you are rebranding or white-labeling the application, here is the exact code map for visual assets, logos, and application titles:
+
+- **Interactive In-App Logo & Visual Vault Icon ([`src/components/CofreLogo.tsx`](./src/components/CofreLogo.tsx)):**
+  - **Vector Vault Icon:** The in-app logo is **not a static bitmap image**; it is rendered programmatically via React and Tailwind CSS. The 3D Neo-Brutalist purple vault cube, rotating door handle, and lime-green equalizer sliders are defined directly in JSX. You can modify its styles, colors, or replace the JSX with your own custom SVG or `<img>` element.
+  - **Brand Typography & Text:** The `"Cofre"` (black) and `"Admin"` (lime-green badge) titles are defined in `CofreLogo.tsx`.
+  - **Bilingual Slogans:** The localized subtitles (*"Own your money. Be the admin."* for `en-US` and *"Seja o admin da sua grana."* for `pt-BR`) are rendered in `CofreLogo.tsx`.
+  - **Emoji Badge Component (`CofreEmoji`):** Renders the vector badge [`public/cofre-emoji.svg`](./public/cofre-emoji.svg).
+- **Header Top Bar Brand Title ([`src/components/Header.tsx`](./src/components/Header.tsx)):**
+  - Renders the brand title badge next to the user avatar in the main authenticated application shell.
+- **Application Title, SEO Meta Tags & OpenGraph Cards ([`index.html`](./index.html)):**
+  - **Document Title:** `<title>CofreAdmin — Self-Custodial Web3 Personal Finance</title>`.
+  - **Metadata & Descriptions:** `<meta name="description">`, `<meta name="keywords">`, `<meta name="application-name">`, and `<meta name="apple-mobile-web-app-title">`.
+  - **Social Sharing Cards (OpenGraph):** `og:site_name`, `og:title`, `og:description`, and `og:image`.
+- **PWA Installation Metadata ([`public/manifest.json`](./public/manifest.json)):**
+  - Controls the application name (`name` and `short_name`), description, and home screen launch behavior for mobile and desktop installations.
+- **System Icons, Favicons & Runtime Media Assets ([`public/`](./public/)):**
+  - **Browser Favicons:** [`public/favicon.svg`](./public/favicon.svg).
+  - **iOS Home Screen & PDF Statement Export Logo:** [`public/apple-touch-icon.png`](./public/apple-touch-icon.png) (also consumed by the PDF accounting statement engine in [`src/utils/exportPdf.ts`](./src/utils/exportPdf.ts)).
+  - **PWA Icons & Push Notifications:** [`public/icon-192.png`](./public/icon-192.png) and [`public/icon-512.png`](./public/icon-512.png) (used in [`public/sw.js`](./public/sw.js) and [`src/services/notificationService.ts`](./src/services/notificationService.ts)).
+  - **Native Social Share Cards:** [`public/cofreadmin-share-card.png`](./public/cofreadmin-share-card.png) and [`public/cofreadmin-share-card-en.png`](./public/cofreadmin-share-card-en.png) (dispatched via WhatsApp / Web Share in [`src/App.tsx`](./src/App.tsx)).
+  - *(Note: `./public/icon48x48.png` is solely a miniature decorative image for markdown README headers, with zero involvement in the application runtime code).*
+
+### 3. Core Logic & Data Persistence Mapping in Source Files
 
 If you wish to update hardcoded default fallbacks directly in source files:
 

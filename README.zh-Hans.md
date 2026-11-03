@@ -172,7 +172,31 @@ Firebase 负责提供多端云端数据漫游与 Google 账户一键登录功能
 | `VITE_SUPPORT_EMAIL` | `cofreadminwallet@gmail.com` | 修改系统“设置”界面中展示的客服邮箱与一键诊断邮件目标 |
 | `VITE_FEEDBACK_URL` | `https://forms.gle/MBpyniv5zf795wi97` | 修改“设置”界面中**用户反馈**按钮跳转的表单链接 |
 
-### 2. 源码映射索引 (Source Code Map)
+### 2. 品牌 Logo、应用名称与视觉资产代码映射
+
+如需进行系统换肤、重命名或白标定制 (Rebranding / White-labeling)，以下为核心视觉资源与代码的精确映射位置：
+
+- **系统核心交互 Logo 与保险库图标组件 ([`src/components/CofreLogo.tsx`](./src/components/CofreLogo.tsx)):**
+  - **矢量保险库图标：** 在运行中的 Web 应用中，Logo **并非静态位图图片**，而是使用 React 与 Tailwind CSS 纯代码动态构建而成。立体新野兽派 (Neo-Brutalist) 紫色保险库轮廓、密码盘旋转手柄以及侧边荧光绿均衡器滑块均直接由 JSX 绘制。您可以直接修改颜色、阴影或替换为自定义 SVG / `<img>` 标签。
+  - **品牌字样：** `"Cofre"` (黑色) 与 `"Admin"` (荧光绿徽章) 文字在 `CofreLogo.tsx` 中定义。
+  - **双语标语 (Slogan)：** `en-US` 英文标语 (*"Own your money. Be the admin."*) 与 `pt-BR` 葡语标语 (*"Seja o admin da sua grana."*) 均在该组件中呈现。
+  - **系统 Emoji 组件 (`CofreEmoji`):** 负责加载并渲染矢量徽章 [`public/cofre-emoji.svg`](./public/cofre-emoji.svg)。
+- **已登录主界面顶栏品牌标识 ([`src/components/Header.tsx`](./src/components/Header.tsx)):**
+  - 在用户头像旁的顶部导航栏展示品牌名称徽章。
+- **页面标题、SEO 标签与社交分享卡片 ([`index.html`](./index.html)):**
+  - **网页标题：** `<title>CofreAdmin — Self-Custodial Web3 Personal Finance</title>`。
+  - **元标签与应用名称：** `<meta name="description">`、`<meta name="keywords">`、`<meta name="application-name">` 以及 `<meta name="apple-mobile-web-app-title">`。
+  - **社交分享卡片 (OpenGraph):** `og:site_name`、`og:title`、`og:description` 与 `og:image`。
+- **PWA 独立安装清单 ([`public/manifest.json`](./public/manifest.json)):**
+  - 配置移动端与桌面端独立窗口安装时的应用全称 (`name`)、简称 (`short_name`)、简介与主屏幕图标。
+- **系统底层运行时静态图标资源 ([`public/`](./public/)):**
+  - **浏览器标签页 Favicon:** [`public/favicon.svg`](./public/favicon.svg)。
+  - **苹果桌面图标与 PDF 对账单表头 Logo:** [`public/apple-touch-icon.png`](./public/apple-touch-icon.png) (同时供 [`src/utils/exportPdf.ts`](./src/utils/exportPdf.ts) 生成对账单时调用)。
+  - **PWA 图标与推送通知图标:** [`public/icon-192.png`](./public/icon-192.png) 与 [`public/icon-512.png`](./public/icon-512.png) (供 [`public/sw.js`](./public/sw.js) 与 [`src/services/notificationService.ts`](./src/services/notificationService.ts) 调用)。
+  - **社交分享封面图:** [`public/cofreadmin-share-card.png`](./public/cofreadmin-share-card.png) 与 [`public/cofreadmin-share-card-en.png`](./public/cofreadmin-share-card-en.png) (在 [`src/App.tsx`](./src/App.tsx) 中用于原生 WhatsApp / Web Share 分享)。
+  - *(注：`./public/icon48x48.png` 仅作为 Markdown README 顶部排版展示的小缩略图，并不参与前端代码与 Web 应用的实际运行)。*
+
+### 3. 源码映射索引 (Source Code Map)
 
 - **数据库与身份验证依赖注入单点 (1 行切换后端)：** [`src/services/index.ts`](./src/services/index.ts) (`db`, `authService`, `billingService`)
 - **仓库契约接口与领域模型：** [`src/services/types.ts`](./src/services/types.ts) (`IDatabaseService`, `IAuthService`, `IBillingService`)
