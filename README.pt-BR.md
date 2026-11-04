@@ -4,7 +4,7 @@
 > **Self-Custodial Web3 Personal Finance** <br>
 > Gestor de Cofres em USDC na Rede Base <br>
 > Versão: **v1.0.6** • Documentação: **[Recursos & Documentação](./docs/)**; **[Whitepaper](./docs/whitepaper/whitepaper-pt-BR.md)**; **[Changelog](./CHANGELOG.md)** <br>
-> Licenciado sob a **GNU Affero General Public License v3.0 ou posterior (AGPL-3.0-or-later)**.
+> Licenciado sob a **Apache License, Version 2.0 (Apache-2.0)**.
 
 🌐 **Idiomas:** **[English](./README.md)** • **[Português](./README.pt-BR.md)** • **[Español](./README.es-ES.md)** • **[简体中文](./README.zh-Hans.md)**
 
@@ -294,7 +294,7 @@ O CofreAdmin une engenharia de software de autocustódia com um modelo sustentá
 
 ## 📬 Contato
 
-Em conformidade com os termos da licença AGPL-3.0-or-later:
+Canais oficiais de atendimento e recursos de suporte:
 
 - **E-mail Oficial de Suporte:** [cofreadminwallet@gmail.com](mailto:cofreadminwallet@gmail.com)
 - **Discord Oficial:** `@cofreadmin`
@@ -306,11 +306,11 @@ Em conformidade com os termos da licença AGPL-3.0-or-later:
 
 ---
 
-## 📜 Licença (AGPL-3.0-or-later)
+## 📜 Licença (Apache-2.0)
 
-Este programa é um software livre: você pode redistribuí-lo e/ou modificá-lo sob os termos da **GNU Affero General Public License conforme publicada pela Free Software Foundation**, tanto a versão 3 da Licença quanto (a seu critério) qualquer versão posterior.
+Este projeto é um software de código aberto licenciado sob a **Apache License, Version 2.0**.
 
-Consulte o arquivo [`LICENSE.md`](./LICENSE.md) para todos os detalhes legais.
+Consulte o arquivo [`LICENSE.md`](./LICENSE.md) para o texto jurídico integral e o arquivo [`NOTICE`](./NOTICE) para a atribuição de direitos autorais e reserva de marcas registradas.
 
 ---
 

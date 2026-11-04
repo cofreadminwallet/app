@@ -4,7 +4,7 @@
 > **Self-Custodial Web3 Personal Finance** <br>
 > USDC Vault Manager on Base Network <br>
 > Version: **v1.0.6** • Docs: **[Resources & Documentation](./docs/)**; **[Whitepaper](./docs/whitepaper/whitepaper.md)**; **[Changelog](./CHANGELOG.md)** <br>
-> Licensed under the **GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later)**.
+> Licensed under the **Apache License, Version 2.0 (Apache-2.0)**.
 
 🌐 **Languages:** **[English](./README.md)** • **[Português](./README.pt-BR.md)** • **[Español](./README.es-ES.md)** • **[简体中文](./README.zh-Hans.md)**
 
@@ -297,7 +297,7 @@ CofreAdmin combines open-source self-custodial software engineering with a clear
 
 ## 📬 Contact
 
-In compliance with the AGPL-3.0-or-later terms:
+Official project contact channels and maintainer resources:
 
 - **Official Support Email:** [cofreadminwallet@gmail.com](mailto:cofreadminwallet@gmail.com)
 - **Official Discord:** `@cofreadmin`
@@ -309,11 +309,11 @@ In compliance with the AGPL-3.0-or-later terms:
 
 ---
 
-## 📜 License (AGPL-3.0-or-later)
+## 📜 License (Apache-2.0)
 
-This program is free software: you can redistribute it and/or modify it under the terms of the **GNU Affero General Public License as published by the Free Software Foundation**, either version 3 of the License, or (at your option) any later version.
+This project is open-source software licensed under the **Apache License, Version 2.0**.
 
-See the [`LICENSE.md`](./LICENSE.md) file for full details.
+See the [`LICENSE.md`](./LICENSE.md) file for the complete legal text and the [`NOTICE`](./NOTICE) file for copyright attribution and trademark reservation notices.
 
 ---
 

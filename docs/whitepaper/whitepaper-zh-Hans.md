@@ -3,7 +3,7 @@
 > <img src="../../public/icon48x48.png" alt="CofreAdmin Logo" width="36" height="36" align="center" /> <br>
 > **Self-Custodial Web3 Personal Finance** <br>
 > 执行白皮书 • 投资逻辑、增长架构与技术路线图 <br>
-> 版本: **v1.0.6** • 基于 **GNU Affero 通用公共许可证 v3.0 或更高版本 (AGPL-3.0-or-later)** 发布。
+> 版本: **v1.0.6** • 基于 **Apache License, Version 2.0 (Apache-2.0)** 协议发布。
 
 🌐 **语言版本:** **[English](whitepaper.md)** • **[Português](whitepaper-pt-BR.md)** • **[Español](whitepaper-es-ES.md)** • **[简体中文](whitepaper-zh-Hans.md)**
 
@@ -191,4 +191,4 @@ CofreAdmin 坚定践行**纯客户端零知识非托管架构 (Zero-Knowledge Cl
 
 ---
 
-🎮 Discord: `@cofreadmin` • 📧 支持邮箱: [support](mailto:cofreadminwallet@gmail.com) • 🌐 开源协议: AGPL-3.0-or-later
+🎮 Discord: `@cofreadmin` • 📧 支持邮箱: [support](mailto:cofreadminwallet@gmail.com) • 🌐 开源协议: Apache-2.0

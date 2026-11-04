@@ -3,7 +3,7 @@
 > <img src="../../public/icon48x48.png" alt="CofreAdmin Logo" width="36" height="36" align="center" /> <br>
 > **Self-Custodial Web3 Personal Finance** <br>
 > Complete User Manual • USDC Vault Manager on Base Network <br>
-> Version: **v1.0.6** • Licensed under the **GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later)**.
+> Version: **v1.0.6** • Licensed under the **Apache License, Version 2.0 (Apache-2.0)**.
 
 🌐 **Languages:** **[English](user-manual.md)** • **[Português](user-manual-pt-BR.md)** • **[Español](user-manual-es-ES.md)** • **[简体中文](user-manual-zh-Hans.md)**
 
@@ -239,4 +239,4 @@ No. Gas sponsorship via EIP-3009 abstracts all network fees, allowing you to sen
 Only you. CofreAdmin is non-custodial. No third party, server, or developer can freeze, seize, or move your assets.
 
 ---
-🎮 Discord: `@cofreadmin` • 📧 Email: [support](mailto:cofreadminwallet@gmail.com) • 🌐 Open-Source: AGPL-3.0-or-later
+🎮 Discord: `@cofreadmin` • 📧 Email: [support](mailto:cofreadminwallet@gmail.com) • 🌐 Open-Source: Apache-2.0

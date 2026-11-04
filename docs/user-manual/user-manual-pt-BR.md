@@ -3,7 +3,7 @@
 > <img src="../../public/icon48x48.png" alt="CofreAdmin Logo" width="36" height="36" align="center" /> <br>
 > **Self-Custodial Web3 Personal Finance** <br>
 > Manual do Usuário Completo • Gestor de Cofres em USDC na Rede Base <br>
-> Versão: **v1.0.6** • Licenciado sob a **GNU Affero General Public License v3.0 ou posterior (AGPL-3.0-or-later)**.
+> Versão: **v1.0.6** • Licenciado sob a **Apache License, Version 2.0 (Apache-2.0)**.
 
 🌐 **Idiomas:** **[English](user-manual.md)** • **[Português](user-manual-pt-BR.md)** • **[Español](user-manual-es-ES.md)** • **[简体中文](user-manual-zh-Hans.md)**
 
@@ -240,4 +240,4 @@ Não. O CofreAdmin é 100% autocustodial. Nenhum intermediário, servidor ou des
 
 ---
 
-🎮 Discord: `@cofreadmin` • 📧 E-mail: [suporte](mailto:cofreadminwallet@gmail.com) • 🌐 Código Aberto: AGPL-3.0-or-later
+🎮 Discord: `@cofreadmin` • 📧 E-mail: [suporte](mailto:cofreadminwallet@gmail.com) • 🌐 Código Aberto: Apache-2.0

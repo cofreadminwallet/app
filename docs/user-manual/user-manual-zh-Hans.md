@@ -3,7 +3,7 @@
 > <img src="../../public/icon48x48.png" alt="CofreAdmin Logo" width="36" height="36" align="center" /> <br>
 > **Self-Custodial Web3 Personal Finance** <br>
 > 完整用户操作手册 • Base 网络 USDC 心愿金库管家 <br>
-> 版本: **v1.0.6** • 基于 **GNU Affero 通用公共许可证 v3.0 或更高版本 (AGPL-3.0-or-later)** 发布。
+> 版本: **v1.0.6** • 基于 **Apache License, Version 2.0 (Apache-2.0)** 协议发布。
 
 🌐 **语言版本:** **[English](user-manual.md)** • **[Português](user-manual-pt-BR.md)** • **[Español](user-manual-es-ES.md)** • **[简体中文](user-manual-zh-Hans.md)**
 
@@ -240,4 +240,4 @@ Base 是 Coinbase 孵化的以太坊第二层扩容方案 (Layer 2)。它将多�
 
 ---
 
-🎮 Discord: `@cofreadmin` • 📧 支持邮箱: [support](mailto:cofreadminwallet@gmail.com) • 🌐 开源协议: AGPL-3.0-or-later
+🎮 Discord: `@cofreadmin` • 📧 支持邮箱: [support](mailto:cofreadminwallet@gmail.com) • 🌐 开源协议: Apache-2.0

@@ -3,7 +3,7 @@
 > <img src="../../public/icon48x48.png" alt="CofreAdmin Logo" width="36" height="36" align="center" /> <br>
 > **Self-Custodial Web3 Personal Finance** <br>
 > 全流程产品生命周期与用户体验设计 • 投资人与技术架构全景指南 <br>
-> 版本: **v1.0.6** • 基于 **GNU Affero 通用公共许可证 v3.0 或更高版本 (AGPL-3.0-or-later)** 发布。
+> 版本: **v1.0.6** • 基于 **Apache License, Version 2.0 (Apache-2.0)** 协议发布。
 
 🌐 **语言版本:** **[English](product-flow.md)** • **[Português](product-flow-pt-BR.md)** • **[Español](product-flow-es-ES.md)** • **[简体中文](product-flow-zh-Hans.md)**
 
@@ -118,4 +118,4 @@
 | **全球合规加密注销证明** | ❌ 否 | ❌ 否 | **✅ 1 键生成 LGPD/GDPR 法律合规审计凭证** |
 
 ---
-🎮 Discord: `@cofreadmin` • 📧 支持邮箱: [support](mailto:cofreadminwallet@gmail.com) • 🌐 开源协议: AGPL-3.0-or-later
+🎮 Discord: `@cofreadmin` • 📧 支持邮箱: [support](mailto:cofreadminwallet@gmail.com) • 🌐 开源协议: Apache-2.0

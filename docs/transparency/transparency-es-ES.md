@@ -3,7 +3,7 @@
 > <img src="../../public/icon48x48.png" alt="CofreAdmin Logo" width="36" height="36" align="center" /> <br>
 > **Self-Custodial Web3 Personal Finance** <br>
 > Guía de Transparencia Pública & Modelo Económico • Visión Técnica & para Inversores <br>
-> Versión: **v1.0.6** • Distribuido bajo la **Licencia Pública General de Affero de GNU v3.0 o posterior (AGPL-3.0-or-later)**.
+> Versión: **v1.0.6** • Distribuido bajo la **Apache License, Version 2.0 (Apache-2.0)**.
 
 🌐 **Idiomas:** **[English](transparency.md)** • **[Português](transparency-pt-BR.md)** • **[Español](transparency-es-ES.md)** • **[简体中文](transparency-zh-Hans.md)**
 
@@ -114,10 +114,10 @@ CofreAdmin opera un motor económico predecible basado en el volumen de transfer
 * **Comprobante Criptográfico de Cumplimiento (`legalAuditArchive`):** En riguroso cumplimiento con las exigencias legales (como el Art. 17 del GDPR europeo y el Art. 16 de la LGPD brasileña), el sistema genera y archiva una constancia criptográfica anónima con marca de tiempo que acredita el descarte legal de la información ante auditorías regulatorias.
 
 ### B. Transparencia en Código Abierto
-* Código distribuido bajo la licencia **GNU Affero General Public License v3.0 o posterior (AGPL-3.0-or-later)**.
-* Cualquier distribución pública con código modificado debe permanecer en código abierto bajo los mismos términos, asegurando la total auditabilidad para la comunidad global.
+* Código distribuido bajo la licencia **Apache License, Version 2.0 (Apache-2.0)**.
+* Modelo abierto permisivo y transparente que garantiza la auditabilidad pública, derivaciones comunitarias y compilaciones reproducibles bajo atribución explícita y protección mutua de patentes.
 
 ---
 
-🎮 Discord: `@cofreadmin` • 📧 Correo: [soporte](mailto:cofreadminwallet@gmail.com) • 🌐 Código Abierto: AGPL-3.0-or-later
+🎮 Discord: `@cofreadmin` • 📧 Correo: [soporte](mailto:cofreadminwallet@gmail.com) • 🌐 Código Abierto: Apache-2.0
 

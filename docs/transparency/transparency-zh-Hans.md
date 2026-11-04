@@ -3,7 +3,7 @@
 > <img src="../../public/icon48x48.png" alt="CofreAdmin Logo" width="36" height="36" align="center" /> <br>
 > **Self-Custodial Web3 Personal Finance** <br>
 > 公开透明治理指南与商业经济模型 • 投资人与技术架构全景规范 <br>
-> 版本: **v1.0.6** • 基于 **GNU Affero 通用公共许可证 v3.0 或更高版本 (AGPL-3.0-or-later)** 发布。
+> 版本: **v1.0.6** • 基于 **Apache License, Version 2.0 (Apache-2.0)** 协议发布。
 
 🌐 **语言版本:** **[English](transparency.md)** • **[Português](transparency-pt-BR.md)** • **[Español](transparency-es-ES.md)** • **[简体中文](transparency-zh-Hans.md)**
 
@@ -114,10 +114,10 @@ CofreAdmin 采用基于交易量和实际网络实用性的透明经济机制，
 * **不可篡改合规审计凭据 (`legalAuditArchive`)：** 依据国际法规要求（如巴西 LGPD 第 16 条及欧洲 GDPR 第 17 条免责条款），系统在注销时生成匿名化加密时间戳存证，用于向监管机构出具依法合规彻底销毁数据的法务证明。
 
 ### B. 开源透明社区监督
-* 全面遵循 **GNU Affero 通用公共许可证 v3.0 或更高版本 (AGPL-3.0-or-later)** 开源分发。
-* 任何公开发布的衍生版本必须以相同的开源协议公开源码，确保全球开发者社区享有完全透明的审计权利。
+* 全面遵循 **Apache License, Version 2.0 (Apache-2.0)** 开源协议分发。
+* 采用宽松透明的开源授权机制，保障全球社区享有完整的代码审查、分支派生与可重现构建权利，并享有明确的专利互不侵犯保护。
 
 ---
 
-🎮 Discord: `@cofreadmin` • 📧 支持邮箱: [support](mailto:cofreadminwallet@gmail.com) • 🌐 开源协议: AGPL-3.0-or-later
+🎮 Discord: `@cofreadmin` • 📧 支持邮箱: [support](mailto:cofreadminwallet@gmail.com) • 🌐 开源协议: Apache-2.0
 

@@ -2,7 +2,7 @@
   "name": "cofreadmin",
   "private": true,
   "version": "1.0.6",
-  "license": "AGPL-3.0-or-later",
+  "license": "Apache-2.0",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",

@@ -4,7 +4,7 @@
 > **Self-Custodial Web3 Personal Finance** <br>
 > 基于 Base 网络的原生 USDC 数字美元金库管理系统 <br>
 > 当前版本：**v1.0.6** • 官方文档：**[技术文档与资源库](./docs/)**；**[白皮书 (Whitepaper)](./docs/whitepaper/whitepaper-zh-Hans.md)**；**[变更日志 (Changelog)](./CHANGELOG.md)** <br>
-> 遵循开源协议：**GNU Affero General Public License v3.0 或更高版本 (AGPL-3.0-or-later)**。
+> 遵循开源协议：**Apache License, Version 2.0 (Apache-2.0)**。
 
 🌐 **语言选择 (Languages):** **[English](./README.md)** • **[Português](./README.pt-BR.md)** • **[Español](./README.es-ES.md)** • **[简体中文](./README.zh-Hans.md)**
 
@@ -291,7 +291,7 @@ CofreAdmin 将自托管密码学工程与透明的生态资助模式深度结合
 
 ## 📬 官方联络渠道 (Contact)
 
-依据 AGPL-3.0-or-later 开源协议规定，官方服务联络方式如下：
+官方服务联络与维护者支持渠道如下：
 
 - **官方技术支持邮箱：** [cofreadminwallet@gmail.com](mailto:cofreadminwallet@gmail.com)
 - **官方 Discord 社区：** `@cofreadmin`
@@ -303,11 +303,11 @@ CofreAdmin 将自托管密码学工程与透明的生态资助模式深度结合
 
 ---
 
-## 📜 开源协议 (AGPL-3.0-or-later)
+## 📜 开源协议 (Apache-2.0)
 
-本程序为自由软件：您可以依据自由软件基金会发布的 **GNU Affero 通用公共许可证 (AGPL)** 条款（许可证第 3 版或您选择的任何后续版本）对其进行重新分发与修改。
+本项目属于开源软件，遵循 **Apache License, Version 2.0** 协议发布。
 
-完整法律授权条款详见仓库根目录的 [`LICENSE.md`](./LICENSE.md) 文件。
+完整的法律授权条款详见仓库根目录的 [`LICENSE.md`](./LICENSE.md) 文件，版权归属与商标保留声明详见 [`NOTICE`](./NOTICE) 文件。
 
 ---
 

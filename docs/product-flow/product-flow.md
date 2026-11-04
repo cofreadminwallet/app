@@ -3,7 +3,7 @@
 > <img src="../../public/icon48x48.png" alt="CofreAdmin Logo" width="36" height="36" align="center" /> <br>
 > **Self-Custodial Web3 Personal Finance** <br>
 > End-to-End Product Flow & User Experience • Investor & Technical Overview <br>
-> Version: **v1.0.6** • Licensed under the **GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later)**.
+> Version: **v1.0.6** • Licensed under the **Apache License, Version 2.0 (Apache-2.0)**.
 
 🌐 **Languages:** **[English](product-flow.md)** • **[Português](product-flow-pt-BR.md)** • **[Español](product-flow-es-ES.md)** • **[简体中文](product-flow-zh-Hans.md)**
 
@@ -119,4 +119,4 @@
 
 ---
 
-🎮 Discord: `@cofreadmin` • 📧 Email: [support](mailto:cofreadminwallet@gmail.com) • 🌐 Open-Source: AGPL-3.0-or-later
+🎮 Discord: `@cofreadmin` • 📧 Email: [support](mailto:cofreadminwallet@gmail.com) • 🌐 Open-Source: Apache-2.0

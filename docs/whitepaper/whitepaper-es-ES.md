@@ -3,7 +3,7 @@
 > <img src="../../public/icon48x48.png" alt="CofreAdmin Logo" width="36" height="36" align="center" /> <br>
 > **Self-Custodial Web3 Personal Finance** <br>
 > Whitepaper Ejecutivo • Tesis de Inversión, Arquitectura de Crecimiento y Hoja de Ruta Técnica <br>
-> Versión: **v1.0.6** • Distribuido bajo la **Licencia Pública General de Affero de GNU v3.0 o posterior (AGPL-3.0-or-later)**.
+> Versión: **v1.0.6** • Distribuido bajo la **Apache License, Version 2.0 (Apache-2.0)**.
 
 🌐 **Idiomas:** **[English](whitepaper.md)** • **[Português](whitepaper-pt-BR.md)** • **[Español](whitepaper-es-ES.md)** • **[简体中文](whitepaper-zh-Hans.md)**
 
@@ -192,4 +192,4 @@ CofreAdmin opera bajo una estricta **Arquitectura No Custodial de Conocimiento C
 
 ---
 
-🎮 Discord: `@cofreadmin` • 📧 Correo: [soporte](mailto:cofreadminwallet@gmail.com) • 🌐 Código Abierto: AGPL-3.0-or-later
+🎮 Discord: `@cofreadmin` • 📧 Correo: [soporte](mailto:cofreadminwallet@gmail.com) • 🌐 Código Abierto: Apache-2.0

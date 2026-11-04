@@ -3,7 +3,7 @@
 > <img src="../../public/icon48x48.png" alt="CofreAdmin Logo" width="36" height="36" align="center" /> <br>
 > **Self-Custodial Web3 Personal Finance** <br>
 > Public Transparency Guide & Economic Model • Investor & Technical Overview <br>
-> Version: **v1.0.6** • Licensed under the **GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later)**.
+> Version: **v1.0.6** • Licensed under the **Apache License, Version 2.0 (Apache-2.0)**.
 
 🌐 **Languages:** **[English](transparency.md)** • **[Português](transparency-pt-BR.md)** • **[Español](transparency-es-ES.md)** • **[简体中文](transparency-zh-Hans.md)**
 
@@ -114,9 +114,9 @@ CofreAdmin operates a transparent, volume-based economic engine designed for sus
 * **Immutable Compliance Proof (`legalAuditArchive`):** In strict accordance with international legal requirements (e.g., Brazilian LGPD Art. 16 and European GDPR Art. 17 exceptions), the system archives an anonymized cryptographic timestamp verifying lawful data disposal for regulatory audit defense.
 
 ### B. Open-Source Transparency
-* Distributed under the **GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later)**.
-* Any public deployment of modified code must remain open-source under identical licensing terms, ensuring complete auditability for the global community.
+* Distributed under the **Apache License, Version 2.0 (Apache-2.0)**.
+* Transparent, permissive open-source model allowing full inspectability, community forks, and verified reproducible builds under clear attribution and patent protection.
 
 ---
 
-🎮 Discord: `@cofreadmin` • 📧 Email: [support](mailto:cofreadminwallet@gmail.com) • 🌐 Open-Source: AGPL-3.0-or-later
+🎮 Discord: `@cofreadmin` • 📧 Email: [support](mailto:cofreadminwallet@gmail.com) • 🌐 Open-Source: Apache-2.0
