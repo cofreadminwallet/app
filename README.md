@@ -314,12 +314,3 @@ Official project contact channels and maintainer resources:
 This project is open-source software licensed under the **Apache License, Version 2.0**.
 
 See the [`LICENSE.md`](./LICENSE.md) file for the complete legal text and the [`NOTICE`](./NOTICE) file for copyright attribution and trademark reservation notices.
-
----
-
-<small>
-💖 Donate Support the development:
-
-- **Fiat:** [GitHub Sponsors](https://github.com/sponsors/erissontech)
-- **Crypto:** [BTC/USDC/ETH/SOL](./.github/donate.md)
-</small>

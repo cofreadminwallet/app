@@ -311,12 +311,3 @@ Canais oficiais de atendimento e recursos de suporte:
 Este projeto é um software de código aberto licenciado sob a **Apache License, Version 2.0**.
 
 Consulte o arquivo [`LICENSE.md`](./LICENSE.md) para o texto jurídico integral e o arquivo [`NOTICE`](./NOTICE) para a atribuição de direitos autorais e reserva de marcas registradas.
-
----
-
-<small>
-💖 Apoie e patrocine o desenvolvimento:
-
-- **Moeda Fiduciária:** [GitHub Sponsors](https://github.com/sponsors/erissontech)
-- **Criptomoedas:** [BTC/USDC/ETH/SOL](./.github/donate.md)
-</small>

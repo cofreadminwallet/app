@@ -308,12 +308,3 @@ CofreAdmin 将自托管密码学工程与透明的生态资助模式深度结合
 本项目属于开源软件，遵循 **Apache License, Version 2.0** 协议发布。
 
 完整的法律授权条款详见仓库根目录的 [`LICENSE.md`](./LICENSE.md) 文件，版权归属与商标保留声明详见 [`NOTICE`](./NOTICE) 文件。
-
----
-
-<small>
-💖 赞助与支持开源开发：
-
-- **法币赞助：** [GitHub Sponsors 开发者赞助通道](https://github.com/sponsors/erissontech)
-- **加密货币捐赠：** [BTC/USDC/ETH/SOL 捐赠地址](./.github/donate.md)
-</small>
