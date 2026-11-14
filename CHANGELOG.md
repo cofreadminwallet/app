@@ -2,17 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.0.6] - 2026-11-01
+## [1.0.6] - 2026-11-14
 
 ### Added
 - **Quick Privacy Mode ("Shoulder Surfing Protection"):** Synchronized 1-tap balance masking across the entire dashboard (`HeroBalanceCard`, `DailyBudgetCard`, `RecentActivityCard`, and `ActiveVaultsPreview`), concealing financial figures with discrete bullet indicators (`••••`) for privacy in public areas.
 - **Anti-Clipboard Poisoning Visual Protection:** High-contrast prefix (first 6 characters) and suffix (last 4 characters) badge segmentation with an integrated anti-adulteration verification badge in `CryptoSendModal` across both payment amount and review steps.
+- **White-Label & Rebranding Code Map:** Added comprehensive technical customization and fork guides across all multilingual documentation files (`README.md`, `README.pt-BR.md`, `README.es-ES.md`, and `README.zh-Hans.md`).
+- **Official Trademark Reservation (`/NOTICE`):** Created standard Apache-2.0 `NOTICE` file reserving all rights to the **CofreAdmin** brand name, visual identity, and official logos under Section 6 of the Apache License 2.0.
+
+### Changed
+- **Open-Source License Migration (`Apache-2.0`):** Migrated project licensing from `AGPL-3.0-or-later` to the permissive **Apache License 2.0** across `/LICENSE.md`, `package.json`, `package-lock.json`, all multilingual `README` files, and the complete `/docs/` documentation suite.
+- **Documentation Streamlining:** Removed sponsorship and donation footer blocks across all `README` files for a cleaner enterprise open-source presentation.
 
 ### Fixed
 - **Multi-Provider Identity & Web3 Vault Unification (OAuth & Web3 Vault):** Unifies access to the same profile and cryptographic vault for identical verified emails (Google/Discord), eliminating the risk of accidental private key overwrite and ensuring international regulatory compliance (GDPR Art. 17/20, CCPA/CPRA, and LGPD) for single data subject consolidation and right-to-erasure integrity:
   - Eliminates artificial login provider segregation in `LoginScreen.tsx` and removes obsolete cross-provider wallet discard logic in `web3Service.ts`.
   - Enables persistent cloud synchronization and restoration via Firestore for Discord accounts sharing a verified email.
   - Prevents unintended key regeneration and recurring terms of service prompts for pre-existing accounts.
+
+### Security
+- **Firestore Rules Hardening (`firestore.rules`):** Replaced broad `allow write` permissions in `users/{userId}` with granular `create`, `update`, and `delete` rules enforcing dual ownership verification (`isOwnerOfExistingData` and `isOwnerOfIncomingData`) and root key-count bounds (`isValidPayloadShape`).
+- **Browser Permission & CSP Hardening (`server.ts`):** Restricted camera permissions from `camera=*` to same-origin `camera=(self)` in `Permissions-Policy`, added `X-Permitted-Cross-Domain-Policies: none`, and enforced `Content-Security-Policy` (`base-uri 'self'; object-src 'none'; form-action 'self'`).
+- **API Telemetry Sanitization (`server.ts`):** Removed internal infrastructure ETH balances, expected gas wallet comparisons, and environment variable guidance from public responses in `GET /api/health`, `GET /api/paymaster/config`, and `POST /api/paymaster/transfer` while preserving full EIP-3009 USDC transfer compatibility.
+- **Paymaster Proxy JSON-RPC Validation (`server.ts`):** Enforced an explicit ERC-4337 JSON-RPC method allowlist (`ALLOWED_PAYMASTER_RPC_METHODS`), parameter array validation, and strict payload reconstruction in `POST /api/paymaster/proxy`.
+- **Repository & Lockfile Hygiene:** Restored strict secret and key exclusions in `.gitignore`, removed unused lockfiles, and sanitized `package-lock.json`.
 
 ## [1.0.5-b] - 2026-10-29
 
