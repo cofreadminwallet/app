@@ -41,6 +41,11 @@ service cloud.firestore {
       );
     }
 
+    function isValidPayloadShape() {
+      return request.resource != null &&
+        request.resource.data.keys().size() <= 40;
+    }
+
     // 2. Operational user data synchronization collection (userData)
     // Only the authenticated account owner can read, write, or delete their own data
     // Shielded against IDOR / Cross-Tenant Overwrite: strictly isolates existing resource from incoming request.resource
@@ -56,8 +61,8 @@ service cloud.firestore {
           (resource.data.user != null && resource.data.user.email == request.auth.token.email)
         ))
       );
-      allow create: if isValidId(userKey) && resource == null && isOwnerOfIncomingData(userKey);
-      allow update: if isValidId(userKey) && resource != null && isOwnerOfExistingData(userKey) && isOwnerOfIncomingData(userKey);
+      allow create: if isValidId(userKey) && resource == null && isOwnerOfIncomingData(userKey) && isValidPayloadShape();
+      allow update: if isValidId(userKey) && resource != null && isOwnerOfExistingData(userKey) && isOwnerOfIncomingData(userKey) && isValidPayloadShape();
       allow delete: if isValidId(userKey) && resource != null && isOwnerOfExistingData(userKey);
     }
 
@@ -66,7 +71,7 @@ service cloud.firestore {
     // Allows read-only access by the audited account owner
     // STRICTLY FORBIDS modification (update) and deletion (delete) - IMMUTABLE PROBATORY RECORD
     match /legalAuditArchive/{archiveId} {
-      allow create: if isSignedIn() && isValidId(archiveId) && (
+      allow create: if isSignedIn() && isValidId(archiveId) && isValidPayloadShape() && (
         request.resource.data.userEmail == request.auth.token.email ||
         request.resource.data.userUid == request.auth.uid
       );
@@ -95,9 +100,20 @@ service cloud.firestore {
           (resource.data.user != null && resource.data.user.email == request.auth.token.email)
         ))
       );
-      allow write: if isSignedIn() && isValidId(userId) && (
+      allow create: if isSignedIn() && isValidId(userId) && resource == null && (
         request.auth.uid == userId ||
         isOwnerOfIncomingData(userId)
+      ) && isValidPayloadShape();
+      allow update: if isSignedIn() && isValidId(userId) && resource != null && (
+        request.auth.uid == userId ||
+        isOwnerOfExistingData(userId)
+      ) && (
+        request.auth.uid == userId ||
+        isOwnerOfIncomingData(userId)
+      ) && isValidPayloadShape();
+      allow delete: if isSignedIn() && isValidId(userId) && resource != null && (
+        request.auth.uid == userId ||
+        isOwnerOfExistingData(userId)
       );
 
       match /{document=**} {
@@ -121,8 +137,8 @@ service cloud.firestore {
           (resource.data.user != null && resource.data.user.email == request.auth.token.email)
         ))
       );
-      allow create: if isValidId(userKey) && resource == null && isOwnerOfIncomingData(userKey);
-      allow update: if isValidId(userKey) && resource != null && isOwnerOfExistingData(userKey) && isOwnerOfIncomingData(userKey);
+      allow create: if isValidId(userKey) && resource == null && isOwnerOfIncomingData(userKey) && isValidPayloadShape();
+      allow update: if isValidId(userKey) && resource != null && isOwnerOfExistingData(userKey) && isOwnerOfIncomingData(userKey) && isValidPayloadShape();
       allow delete: if isValidId(userKey) && resource != null && isOwnerOfExistingData(userKey);
     }
   }

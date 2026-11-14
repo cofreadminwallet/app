@@ -59,7 +59,16 @@ app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  res.setHeader('Permissions-Policy', 'camera=*, microphone=(), geolocation=(), payment=()');
+  res.setHeader('Permissions-Policy', 'camera=(self), microphone=(), geolocation=(), payment=()');
+  res.setHeader('X-Permitted-Cross-Domain-Policies', 'none');
+  const frameAncestors = process.env.CSP_FRAME_ANCESTORS?.trim();
+  const cspDirectives = [
+    "base-uri 'self'",
+    "object-src 'none'",
+    "form-action 'self'",
+    ...(frameAncestors ? [`frame-ancestors ${frameAncestors}`] : []),
+  ].join('; ');
+  res.setHeader('Content-Security-Policy', cspDirectives);
   res.removeHeader('X-Powered-By');
   next();
 });
@@ -228,42 +237,13 @@ if (relayerAccount.address.toLowerCase() === EXPECTED_GAS_RELAYER.toLowerCase())
 }
 
 // -------------------------------------------------------------
-// 1. API: Health & Relayer Status
+// 1. API: Health Status (Sanitized - No internal wallet telemetry exposed)
 // -------------------------------------------------------------
-app.get('/api/health', async (req, res) => {
-  const publicClient = createPublicClient({
-    chain: base,
-    transport: http(BASE_RPC),
-  });
-
-  const targetGasWallet = EXPECTED_GAS_RELAYER;
-  const devFeeRecipient = (process.env.DEV_FEE_RECIPIENT_ADDRESS?.trim() || DEFAULT_DEV_FEE_RECIPIENT) as `0x${string}`;
-  let relayerEthBalance = '0';
-  let targetEthBalance = '0';
-  let hasEthBalance = false;
-
-  try {
-    const balWei = await publicClient.getBalance({ address: relayerAccount.address });
-    relayerEthBalance = formatUnits(balWei, 18);
-    const targetBalWei = await publicClient.getBalance({ address: targetGasWallet });
-    targetEthBalance = formatUnits(targetBalWei, 18);
-    hasEthBalance = balWei > BigInt(30000000000000); // > 0.00003 ETH
-  } catch (err) {
-    console.warn('Erro ao consultar saldo do Relayer:', err);
-  }
-
+app.get('/api/health', (_req, res) => {
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
     network: 'base',
-    relayerAddress: relayerAccount.address,
-    expectedGasWallet: targetGasWallet,
-    devFeeRecipient,
-    isOfficialGasWalletLoaded: relayerAccount.address.toLowerCase() === targetGasWallet.toLowerCase(),
-    relayerEthBalance,
-    targetGasWalletEthBalance: targetEthBalance,
-    hasEthBalance,
-    feeUsdc: parseFloat(process.env.RELAYER_FEE_USDC || '0.02'),
   });
 });
 
@@ -319,30 +299,23 @@ app.get('/api/firebase-config', (_req, res) => {
   });
 });
 
-app.get('/api/paymaster/config', async (req, res) => {
+app.get('/api/paymaster/config', async (_req, res) => {
   const publicClient = createPublicClient({
     chain: base,
     transport: http(BASE_RPC),
   });
 
-  const targetGasWallet = EXPECTED_GAS_RELAYER;
   const devFeeRecipient = (process.env.DEV_FEE_RECIPIENT_ADDRESS?.trim() || DEFAULT_DEV_FEE_RECIPIENT) as `0x${string}`;
-  let relayerEthBalance = '0';
-  let targetEthBalance = '0';
   let hasEthBalance = false;
 
   try {
     const balWei = await publicClient.getBalance({ address: relayerAccount.address });
-    relayerEthBalance = formatUnits(balWei, 18);
-    const targetBalWei = await publicClient.getBalance({ address: targetGasWallet });
-    targetEthBalance = formatUnits(targetBalWei, 18);
     hasEthBalance = balWei > BigInt(30000000000000);
   } catch (err) {
-    console.warn('Erro ao consultar saldo do Relayer:', err);
+    console.warn('Erro ao consultar disponibilidade do Relayer:', err);
   }
 
   const feeUsdc = parseFloat(process.env.RELAYER_FEE_USDC || '0.02');
-  const isOfficial = relayerAccount.address.toLowerCase() === targetGasWallet.toLowerCase();
 
   res.json({
     enabled: true,
@@ -361,11 +334,7 @@ app.get('/api/paymaster/config', async (req, res) => {
       description: 'Circle Paymaster Oficial na Base (Permissionless: Usuário paga taxa com o próprio USDC, sem necessidade de Policy ID ou ETH).',
     },
     relayerAddress: relayerAccount.address,
-    expectedGasWallet: targetGasWallet,
     devFeeRecipient,
-    isOfficialGasWalletLoaded: isOfficial,
-    relayerEthBalance,
-    targetGasWalletEthBalance: targetEthBalance,
     hasEthBalance,
     feeUsdc,
     gasToken: 'USDC',
@@ -375,10 +344,19 @@ app.get('/api/paymaster/config', async (req, res) => {
   });
 });
 
+// Allowed ERC-4337 JSON-RPC methods for the Paymaster proxy
+const ALLOWED_PAYMASTER_RPC_METHODS = new Set([
+  'pm_sponsorUserOperation',
+  'pm_getPaymasterData',
+  'pm_getPaymasterStubData',
+  'eth_sendUserOperation',
+  'eth_estimateUserOperationGas',
+]);
+
 // -------------------------------------------------------------
 // PAYMASTER PROXY: Secure Proxy for Paymaster / Gas Station Calls
 // Keeps CIRCLE_API_KEY strictly concealed on server and
-// enforces Allowlist validation across all incoming requests.
+// enforces Allowlist + JSON-RPC schema validation across all requests.
 // -------------------------------------------------------------
 app.post('/api/paymaster/proxy', async (req, res) => {
   try {
@@ -390,7 +368,7 @@ app.post('/api/paymaster/proxy', async (req, res) => {
       });
     }
 
-    const { targetContract, senderAddress } = req.body;
+    const { targetContract, senderAddress, jsonrpc, id, method, params } = req.body;
 
     // 1. Mandatory and Strict Contract Allowlist Validation (Fail-Closed: rejects if empty or missing)
     const contractCandidate = String(targetContract || req.body?.to || req.body?.contractAddress || '').trim().toLowerCase();
@@ -402,9 +380,24 @@ app.post('/api/paymaster/proxy', async (req, res) => {
       });
     }
 
-    // 2. Anti-Drain Protection (Dual Rate Limiting: IP + Wallet Address)
+    // 2. Strict JSON-RPC Method & Parameter Schema Validation
+    if (
+      typeof method !== 'string' ||
+      !ALLOWED_PAYMASTER_RPC_METHODS.has(method.trim()) ||
+      !Array.isArray(params)
+    ) {
+      return res.status(400).json({
+        success: false,
+        error: 'Segurança: Método JSON-RPC ou parâmetros inválidos para o Paymaster.',
+      });
+    }
+
+    // 3. Anti-Drain Protection (Dual Rate Limiting: IP + Wallet Address)
     const clientIp = req.ip || req.socket?.remoteAddress || 'unknown_ip';
-    if (!checkSponsorshipRateLimit(clientIp, senderAddress)) {
+    const normalizedSender = typeof senderAddress === 'string' && isAddress(senderAddress.trim())
+      ? senderAddress.trim()
+      : undefined;
+    if (!checkSponsorshipRateLimit(clientIp, normalizedSender)) {
       return res.status(429).json({
         success: false,
         error: 'Limite de requisições de patrocínio excedido temporariamente. Aguarde alguns segundos.',
@@ -414,9 +407,17 @@ app.post('/api/paymaster/proxy', async (req, res) => {
     if (!isCirclePaymasterActive) {
       return res.status(503).json({
         success: false,
-        error: 'Circle Paymaster não configurado. Defina CIRCLE_API_KEY nas variáveis de ambiente.',
+        error: 'Serviço de patrocínio externo temporariamente indisponível.',
       });
     }
+
+    // Construct strictly sanitized JSON-RPC payload (stripping any extra unvalidated fields)
+    const sanitizedRpcPayload = {
+      jsonrpc: jsonrpc === '2.0' ? '2.0' : '2.0',
+      id: typeof id === 'number' || typeof id === 'string' ? id : 1,
+      method: method.trim(),
+      params,
+    };
 
     // Forwards authenticated request to Circle Web3 Services using server key
     const circleEndpoint = 'https://api.circle.com/v1/w3s/paymaster';
@@ -426,7 +427,7 @@ app.post('/api/paymaster/proxy', async (req, res) => {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${CIRCLE_API_KEY}`,
       },
-      body: JSON.stringify(req.body),
+      body: JSON.stringify(sanitizedRpcPayload),
       signal: AbortSignal.timeout(10000),
     });
 
@@ -436,7 +437,7 @@ app.post('/api/paymaster/proxy', async (req, res) => {
     console.error('[Paymaster Proxy] Erro no encaminhamento para Circle:', proxyErr);
     return res.status(500).json({
       success: false,
-      error: proxyErr.message || 'Falha na comunicação com a Paymaster da Circle.',
+      error: 'Falha na comunicação com o serviço de Paymaster.',
     });
   }
 });
@@ -1294,18 +1295,12 @@ app.post('/api/paymaster/transfer', async (req, res) => {
     // Each Base tx costs ~0.000005 ETH (~$0.01). Require at least 0.000025 ETH
     const minEthRequiredWei = BigInt(25000000000000);
     if (relayerEthBalanceWei < minEthRequiredWei) {
-      const isOfficial = relayerAccount.address.toLowerCase() === EXPECTED_GAS_RELAYER.toLowerCase();
-      const guidance = isOfficial
-        ? `A carteira de gás oficial (${EXPECTED_GAS_RELAYER}) precisa de saldo em ETH na Base (mínimo ~0.0005 a 0.001 ETH / cerca de R$ 5 a R$ 10). Envie uma pequena fração de ETH na Base para ${EXPECTED_GAS_RELAYER}.`
-        : `A carteira despachante atual (${relayerAccount.address}) está sem ETH na Base. Para usar sua carteira de gás (${EXPECTED_GAS_RELAYER}), adicione a chave privada dela na variável RELAYER_PRIVATE_KEY e certifique-se de que ela tenha ~0.001 ETH na Base.`;
-
-      return res.status(400).json({
+      console.warn(
+        `[Relayer] Insufficient ETH on Base for gas sponsorship (${relayerAccount.address}: ${formatUnits(relayerEthBalanceWei, 18)} ETH)`
+      );
+      return res.status(503).json({
         success: false,
-        error: guidance,
-        relayerAddress: relayerAccount.address,
-        expectedGasWallet: EXPECTED_GAS_RELAYER,
-        devFeeRecipient,
-        relayerEthBalance: formatUnits(relayerEthBalanceWei, 18),
+        error: 'Serviço de patrocínio de gás temporariamente indisponível na rede Base. Tente novamente em instantes.',
       });
     }
 
