@@ -3,7 +3,7 @@
 > <img src="./public/icon48x48.png" alt="CofreAdmin Logo" width="36" height="36" align="center" /> <br>
 > **Self-Custodial Web3 Personal Finance** <br>
 > Gestor de Cofres em USDC na Rede Base <br>
-> Versão: **v1.0.6** • Documentação: **[Recursos & Documentação](./docs/)**; **[Whitepaper](./docs/whitepaper/whitepaper-pt-BR.md)**; **[Changelog](./CHANGELOG.md)** <br>
+> Versão: **v1.0.7** • Documentação: **[Recursos & Documentação](./docs/)**; **[Whitepaper](./docs/whitepaper/whitepaper-pt-BR.md)**; **[Changelog](./CHANGELOG.md)** <br>
 > Licenciado sob a **Apache License, Version 2.0 (Apache-2.0)**.
 
 🌐 **Idiomas:** **[English](./README.md)** • **[Português](./README.pt-BR.md)** • **[Español](./README.es-ES.md)** • **[简体中文](./README.zh-Hans.md)**

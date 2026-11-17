@@ -3,7 +3,7 @@
 > <img src="./public/icon48x48.png" alt="CofreAdmin Logo" width="36" height="36" align="center" /> <br>
 > **Self-Custodial Web3 Personal Finance** <br>
 > USDC Vault Manager on Base Network <br>
-> Version: **v1.0.6** • Docs: **[Resources & Documentation](./docs/)**; **[Whitepaper](./docs/whitepaper/whitepaper.md)**; **[Changelog](./CHANGELOG.md)** <br>
+> Version: **v1.0.7** • Docs: **[Resources & Documentation](./docs/)**; **[Whitepaper](./docs/whitepaper/whitepaper.md)**; **[Changelog](./CHANGELOG.md)** <br>
 > Licensed under the **Apache License, Version 2.0 (Apache-2.0)**.
 
 🌐 **Languages:** **[English](./README.md)** • **[Português](./README.pt-BR.md)** • **[Español](./README.es-ES.md)** • **[简体中文](./README.zh-Hans.md)**

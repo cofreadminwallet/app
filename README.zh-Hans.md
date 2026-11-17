@@ -3,7 +3,7 @@
 > <img src="./public/icon48x48.png" alt="CofreAdmin Logo" width="36" height="36" align="center" /> <br>
 > **Self-Custodial Web3 Personal Finance** <br>
 > 基于 Base 网络的原生 USDC 数字美元金库管理系统 <br>
-> 当前版本：**v1.0.6** • 官方文档：**[技术文档与资源库](./docs/)**；**[白皮书 (Whitepaper)](./docs/whitepaper/whitepaper-zh-Hans.md)**；**[变更日志 (Changelog)](./CHANGELOG.md)** <br>
+> 当前版本：**v1.0.7** • 官方文档：**[技术文档与资源库](./docs/)**；**[白皮书 (Whitepaper)](./docs/whitepaper/whitepaper-zh-Hans.md)**；**[变更日志 (Changelog)](./CHANGELOG.md)** <br>
 > 遵循开源协议：**Apache License, Version 2.0 (Apache-2.0)**。
 
 🌐 **语言选择 (Languages):** **[English](./README.md)** • **[Português](./README.pt-BR.md)** • **[Español](./README.es-ES.md)** • **[简体中文](./README.zh-Hans.md)**

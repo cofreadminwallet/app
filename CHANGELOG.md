@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.7] - 2026-11-17
+
+### Added
+- **Direct Production System Launch Badges:** Added localized high-visibility launch badges (`Launch Full System`, `Acessar Sistema Completo`, `Abrir Sistema Completo`, and `启动完整系统`) pointing to the web application across all multilingual documentation files (`README.md`, `README.pt-BR.md`, `README.es-ES.md`, and `README.zh-Hans.md`).
+
 ## [1.0.6] - 2026-11-14
 
 ### Added
