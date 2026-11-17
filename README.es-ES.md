@@ -4,9 +4,13 @@
 > **Self-Custodial Web3 Personal Finance** <br>
 > Gestor de Bóvedas en USDC en la Red Base <br>
 > Versión: **v1.0.6** • Documentación: **[Recursos y Documentación](./docs/)**; **[Whitepaper](./docs/whitepaper/whitepaper-es-ES.md)**; **[Changelog](./CHANGELOG.md)** <br>
-> Licenciado bajo la **GNU Affero General Public License v3.0 o posterior (AGPL-3.0-or-later)**.
+> Licenciado bajo la **Apache License, Version 2.0 (Apache-2.0)**.
 
 🌐 **Idiomas:** **[English](./README.md)** • **[Português](./README.pt-BR.md)** • **[Español](./README.es-ES.md)** • **[简体中文](./README.zh-Hans.md)**
+
+---
+
+[![Abrir Sistema Completo](https://img.shields.io/badge/🚀_Abrir_Sistema_Completo-2EA043?style=for-the-badge)](https://cofreadmin.gfin.app/)
 
 ---
 
@@ -172,7 +176,31 @@ Para implementaciones privadas, institucionales o rebranding, puede modificar lo
 | `VITE_SUPPORT_EMAIL` | `cofreadminwallet@gmail.com` | Modifica el correo oficial de soporte en Configuración y enlaces de diagnóstico |
 | `VITE_FEEDBACK_URL` | `https://forms.gle/MBpyniv5zf795wi97` | Modifica la URL de destino del botón **Feedback** en Configuración |
 
-### 2. Mapeo en el Código Fuente
+### 2. Personalización de Logotipo, Nombre de la Aplicación y Activos Visuales en Código
+
+Si desea realizar un cambio de marca (*rebranding*) o adaptar una implementación propia (*white-label*), este es el mapa técnico exacto en el código fuente:
+
+- **Logotipo Visual de la Aplicación e Ícono de Bóveda ([`src/components/CofreLogo.tsx`](./src/components/CofreLogo.tsx)):**
+  - **Ícono del Logotipo:** En la aplicación en ejecución, el logotipo **no es una imagen de mapa de bits estática**; se dibuja programáticamente mediante React y Tailwind CSS. El cuerpo 3D Neo-Brutalista con degradado púrpura, el volante giratorio y el ecualizador verde lima se construyen directamente en JSX. Es posible modificar sus estilos o reemplazarlo por un SVG propio o etiqueta `<img>`.
+  - **Tipografía y Marca:** Los títulos `"Cofre"` (negro) y `"Admin"` (insignia verde lima) están definidos en `CofreLogo.tsx`.
+  - **Eslóganes Bilingües:** Los subtítulos en `en-US` (*"Own your money. Be the admin."*) y `pt-BR` (*"Seja o admin da sua grana."*) se gestionan en `CofreLogo.tsx`.
+  - **Componente de Emoji Oficial (`CofreEmoji`):** Renderiza el archivo vectorial [`public/cofre-emoji.svg`](./public/cofre-emoji.svg).
+- **Título de la Marca en la Barra Superior ([`src/components/Header.tsx`](./src/components/Header.tsx)):**
+  - Renderiza la insignia de la aplicación en la cabecera junto al avatar del usuario autenticado.
+- **Título de la Aplicación, Metatags SEO y OpenGraph ([`index.html`](./index.html)):**
+  - **Título del Documento:** `<title>CofreAdmin — Self-Custodial Web3 Personal Finance</title>`.
+  - **Metatags y Descripciones:** `<meta name="description">`, `<meta name="keywords">`, `<meta name="application-name">` y `<meta name="apple-mobile-web-app-title">`.
+  - **Tarjetas de Compartir (OpenGraph):** `og:site_name`, `og:title`, `og:description` y `og:image`.
+- **Manifiesto de Instalación PWA ([`public/manifest.json`](./public/manifest.json)):**
+  - Define el nombre de la app (`name` y `short_name`), descripción y comportamiento de pantalla completa en dispositivos móviles y de escritorio.
+- **Íconos del Sistema, Favicons y Recursos en Tiempo de Ejecución ([`public/`](./public/)):**
+  - **Favicon del Navegador:** [`public/favicon.svg`](./public/favicon.svg).
+  - **Ícono Apple / Encabezado de Extracto PDF:** [`public/apple-touch-icon.png`](./public/apple-touch-icon.png) (utilizado también por el motor de extractos en [`src/utils/exportPdf.ts`](./src/utils/exportPdf.ts)).
+  - **Íconos PWA y Notificaciones Push:** [`public/icon-192.png`](./public/icon-192.png) y [`public/icon-512.png`](./public/icon-512.png) (usados en [`public/sw.js`](./public/sw.js) y [`src/services/notificationService.ts`](./src/services/notificationService.ts)).
+  - **Tarjetas de Compartición Nativa:** [`public/cofreadmin-share-card.png`](./public/cofreadmin-share-card.png) y [`public/cofreadmin-share-card-en.png`](./public/cofreadmin-share-card-en.png) (utilizadas en WhatsApp / Web Share en [`src/App.tsx`](./src/App.tsx)).
+  - *(Nota: El archivo `./public/icon48x48.png` es únicamente una miniatura decorativa para el encabezado de los archivos Markdown del README, sin participación en el código de ejecución).*
+
+### 3. Mapeo en el Código Fuente
 
 Si desea actualizar parámetros fijos directamente en los archivos de origen:
 
@@ -269,7 +297,7 @@ CofreAdmin combina la ingeniería de software de autocustodia con un modelo de s
 
 ## 📬 Contacto
 
-En cumplimiento con los términos de la licencia AGPL-3.0-or-later:
+Canales oficiales de contacto y recursos de soporte:
 
 - **Correo Oficial de Soporte:** [cofreadminwallet@gmail.com](mailto:cofreadminwallet@gmail.com)
 - **Discord Oficial:** `@cofreadmin`
@@ -281,17 +309,8 @@ En cumplimiento con los términos de la licencia AGPL-3.0-or-later:
 
 ---
 
-## 📜 Licencia (AGPL-3.0-or-later)
+## 📜 Licencia (Apache-2.0)
 
-Este programa es software libre: puede redistribuirlo o modificarlo bajo los términos de la **GNU Affero General Public License según la publica la Free Software Foundation**, ya sea la versión 3 de la Licencia o (a su criterio) cualquier versión posterior.
+Este proyecto es software de código abierto licenciado bajo la **Apache License, Version 2.0**.
 
-Consulte el archivo [`LICENSE.md`](./LICENSE.md) para conocer todos los detalles legales.
-
----
-
-<small>
-💖 Apoye el desarrollo del proyecto:
-
-- **Moneda Fiduciaria:** [GitHub Sponsors](https://github.com/sponsors/erissontech)
-- **Criptomonedas:** [BTC/USDC/ETH/SOL](./.github/donate.md)
-</small>
+Consulte el archivo [`LICENSE.md`](./LICENSE.md) para el texto legal completo y el archivo [`NOTICE`](./NOTICE) para la atribución de derechos de autor y reserva de marcas registradas.
