@@ -10,6 +10,10 @@
 
 ---
 
+[![启动完整系统](https://img.shields.io/badge/🚀_启动完整系统-2EA043?style=for-the-badge)](https://cofreadmin.gfin.app/)
+
+---
+
 ## 📖 项目概述 (Overview)
 
 **CofreAdmin** 是一款开源的**完全自托管 (Self-Custodial)** Web3 个人财务管理系统与数字美元钱包，构建于以太坊二层网络 **Base (Ethereum Layer 2)** 之上。

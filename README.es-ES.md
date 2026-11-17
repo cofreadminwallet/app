@@ -10,6 +10,10 @@
 
 ---
 
+[![Abrir Sistema Completo](https://img.shields.io/badge/🚀_Abrir_Sistema_Completo-2EA043?style=for-the-badge)](https://cofreadmin.gfin.app/)
+
+---
+
 ## 📖 Descripción General
 
 **CofreAdmin** es una aplicación web de finanzas personales de código abierto y billetera de dólares digitales de **autocustodia estricta**, desarrollada sobre la red **Base (Ethereum Layer 2)**.

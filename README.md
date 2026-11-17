@@ -10,6 +10,10 @@
 
 ---
 
+[![Launch Full System](https://img.shields.io/badge/🚀_Launch_Full_System-2EA043?style=for-the-badge)](https://cofreadmin.gfin.app/)
+
+---
+
 ## 📖 Overview
 
 **CofreAdmin** is an open-source, self-custodial personal finance web application and digital dollar wallet built on the **Base network (Ethereum Layer 2)**. 
